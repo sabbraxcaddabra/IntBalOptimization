@@ -1,6 +1,6 @@
 from matplotlib import pyplot as plt
 from IntBalClasses import ArtSystem, Powder, IntBalParams
-from InternalBallistics.analyze.SolveIntBal import solve_ib
+from InternalBallistics.Analyze.SolveIntBal import solve_ib
 
 
 if __name__ == '__main__':

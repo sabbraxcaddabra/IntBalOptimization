@@ -1,6 +1,5 @@
-from PyQt5 import QtCore, QtGui, QtWidgets
+from PyQt5 import QtWidgets
 import sys
-import numpy as np
 
 import PlotsGUI
 
@@ -9,7 +8,9 @@ from matplotlib.backends.backend_qt5agg import NavigationToolbar2QT as Navigatio
 import matplotlib.pyplot as plt
 import random
 
-
+"""
+Окно графиков для mainGUI.py
+"""
 class PlotApp(QtWidgets.QMainWindow, PlotsGUI.Ui_Dialog):
     def __init__(self, parent=None):
         super().__init__()
