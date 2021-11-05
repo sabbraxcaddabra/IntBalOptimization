@@ -1,5 +1,4 @@
-from PyQt5 import QtWidgets
-from PyQt5 import Qt
+from PyQt5 import QtCore, QtGui, QtWidgets, Qt
 
 import sys
 from InternalBallistics.Analyze.SolveIntBal import solve_ib
@@ -11,10 +10,6 @@ from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
 from matplotlib.backends.backend_qt5agg import NavigationToolbar2QT as NavigationToolbar
 import matplotlib.pyplot as plt
 
-"""
-Окно анализа на основе вкладок(лучший!)
-"""
-
 class AnalyzeApp(QtWidgets.QMainWindow, TryToMakeTabs.Ui_Dialog):
     def __init__(self, parent=None, int_bal_cond=None):
         super().__init__()
@@ -22,8 +17,9 @@ class AnalyzeApp(QtWidgets.QMainWindow, TryToMakeTabs.Ui_Dialog):
         self.parent = parent
         self.int_bal_cond = int_bal_cond
 
-
         self.first_row_text()
+
+
         # a figure instance to plot on
         self.figure = plt.figure()
 
@@ -62,12 +58,6 @@ class AnalyzeApp(QtWidgets.QMainWindow, TryToMakeTabs.Ui_Dialog):
                 a = Qt.QTableWidgetItem('0.')
                 self.result_table.setItem(0, 3+i, a)
 
-
-
-        # for i in range(len(self.int_bal_cond.charge)):
-        #     self.result_table.insertColumn(3+i)
-        #     self.result_table.verticalHeaderItem(0).col
-
     def handleItemPressed(self, index):
         item = self.plot_comboBox.model().itemFromIndex(index)
         self.plot_(item.text())
@@ -82,22 +72,8 @@ class AnalyzeApp(QtWidgets.QMainWindow, TryToMakeTabs.Ui_Dialog):
         method_ = self.method_comboBox.currentText()
 
         tau = float(self.step_lineEdit.text())
-        # artsys = ArtSystem(name='2А42',  d=.03, S=0.000735299, q=0.389, W0=0.125E-3, l_d=2.263, l_k=0.12,
-        #                    l0=0.125E-3 / 0.000735299, Kf=1.136)
-        #
-        # int_bal_cond = IntBalParams(syst=artsys, P0=50e6, PV=4e6)
-        # int_bal_cond.add_powder(
-        #     Powder(name='6/7', omega=0.07, rho=1.6e3, f_powd=988e3, Ti=2800., Jk=343.8e3, alpha=1.038e-3, teta=0.236,
-        #            Zk=1.53, kappa1=0.239, lambd1=2.26, mu1=0., kappa2=0.835, lambd2=-0.943, mu2=0.))
-        # int_bal_cond.add_powder(
-        #     Powder(name='6/7', omega=0.03, rho=1.6e3, f_powd=988e3, Ti=2800., Jk=343.8e3, alpha=1.038e-3, teta=0.236,
-        #            Zk=1.53, kappa1=0.239, lambd1=2.26, mu1=0., kappa2=0.835, lambd2=-0.943, mu2=0.))
-        # int_bal_cond.add_powder(
-        #     Powder(name='6/7', omega=0.02, rho=1.6e3, f_powd=988e3, Ti=2800., Jk=343.8e3, alpha=1.038e-3, teta=0.236,
-        #            Zk=1.53, kappa1=0.239, lambd1=2.26, mu1=0., kappa2=0.835, lambd2=-0.943, mu2=0.))
 
         ys, p_mean, p_sn, p_kn = solve_ib(*self.int_bal_cond.create_params_tuple(), method=methods[method_], tstep=tau)
-
         res = (
             f"Дульная скорость, м/с: {round(ys[0][-1], 1)}",
             f"Максимальное среднебаллистическое давление, MПа: {round(max(p_mean)*1e-6, 2)}"
@@ -105,7 +81,7 @@ class AnalyzeApp(QtWidgets.QMainWindow, TryToMakeTabs.Ui_Dialog):
         res = '\n'.join(res)
         self.short_res_textEdit.setText(res)
 
-        self.curent_result = {
+        self.current_result = {
             'ys':ys,
             'p_mean':p_mean,
             'p_sn':p_sn,
@@ -131,10 +107,9 @@ class AnalyzeApp(QtWidgets.QMainWindow, TryToMakeTabs.Ui_Dialog):
             plot_dict[grafics_dict_key][0](*plot_dict[grafics_dict_key][1])
         except:
             print("Нет данных для расечта")
-
     def _pressure_graphics(self, vals='p_mean', title='Среднебаллистическое давление'):
-        pressure = self.curent_result[vals] * 1e-6
-        l_d = self.curent_result['ys'][1]
+        pressure = self.current_result[vals] * 1e-6
+        l_d = self.current_result['ys'][1]
         # instead of ax.hold(False)
         self.figure.clear()
         # create an axis
@@ -156,8 +131,8 @@ class AnalyzeApp(QtWidgets.QMainWindow, TryToMakeTabs.Ui_Dialog):
         self.canvas.draw()
 
     def _velocity_graphic(self, title='Скорость снаряда'):
-        velocity = self.curent_result['ys'][0]
-        l_d = self.curent_result['ys'][1]
+        velocity = self.current_result['ys'][0]
+        l_d = self.current_result['ys'][1]
 
         self.figure.clear()
         # create an axis
