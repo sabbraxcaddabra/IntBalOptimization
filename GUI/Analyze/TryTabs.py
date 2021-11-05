@@ -58,6 +58,13 @@ class AnalyzeApp(QtWidgets.QMainWindow, TryToMakeTabs.Ui_Dialog):
                 a = Qt.QTableWidgetItem('0.')
                 self.result_table.setItem(0, 3+i, a)
 
+        PV = str(self.int_bal_cond.PV * 1e-6)
+        for k in range(3+len(self.int_bal_cond.charge), len(self.int_bal_cond.charge)+6):
+            a = Qt.QTableWidgetItem(PV)
+            self.result_table.setItem(0, k, a)
+
+
+
     def handleItemPressed(self, index):
         item = self.plot_comboBox.model().itemFromIndex(index)
         self.plot_(item.text())
@@ -73,7 +80,7 @@ class AnalyzeApp(QtWidgets.QMainWindow, TryToMakeTabs.Ui_Dialog):
 
         tau = float(self.step_lineEdit.text())
 
-        ys, p_mean, p_sn, p_kn = solve_ib(*self.int_bal_cond.create_params_tuple(), method=methods[method_], tstep=tau)
+        ts, ys, p_mean, p_sn, p_kn = solve_ib(*self.int_bal_cond.create_params_tuple(), method=methods[method_], tstep=tau)
         res = (
             f"Дульная скорость, м/с: {round(ys[0][-1], 1)}",
             f"Максимальное среднебаллистическое давление, MПа: {round(max(p_mean)*1e-6, 2)}"
@@ -82,12 +89,13 @@ class AnalyzeApp(QtWidgets.QMainWindow, TryToMakeTabs.Ui_Dialog):
         self.short_res_textEdit.setText(res)
 
         self.current_result = {
+            'ts':ts,
             'ys':ys,
             'p_mean':p_mean,
             'p_sn':p_sn,
             'p_kn':p_kn
         }
-
+        self._fill_result_table()
         self.plot_()
 
         self.plot_comboBox.setCurrentIndex(1)
@@ -151,6 +159,29 @@ class AnalyzeApp(QtWidgets.QMainWindow, TryToMakeTabs.Ui_Dialog):
 
         self.canvas.draw()
 
+    def _fill_result_table(self):
+        """
+        Заполнение таблицы результатов
+        :return:
+        """
+        for timestep in range(len(self.current_result['ts'])):
+            self.result_table.insertRow(timestep+1)
+            a = Qt.QTableWidgetItem(str(round(self.current_result['ts'][timestep]*1e3, 2)))
+            self.result_table.setItem(timestep, 0, a)
+            for index, y in enumerate(self.current_result['ys'], start=1):
+                a = Qt.QTableWidgetItem(str(round(y[timestep], 2)))
+                self.result_table.setItem(timestep, index, a)
+            p_map = map(self.current_result.get, ('p_mean', 'p_sn', 'p_kn'))
+
+            for i, p in enumerate(p_map, start=index+1):
+                a = Qt.QTableWidgetItem(str(round(p[timestep]*1e-6, 2)))
+                self.result_table.setItem(timestep, i, a)
+
+
+
+
+
+
 
 def StartApp():
     artsys = ArtSystem(name='2А42', d=.03, S=0.000735299, q=0.389, W0=0.125E-3, l_d=2.263, l_k=0.12,
@@ -164,7 +195,10 @@ def StartApp():
         Powder(name='6/7', omega=0.03, rho=1.6e3, f_powd=988e3, Ti=2800., Jk=343.8e3, alpha=1.038e-3, teta=0.236,
                Zk=1.53, kappa1=0.239, lambd1=2.26, mu1=0., kappa2=0.835, lambd2=-0.943, mu2=0.))
     int_bal_cond.add_powder(
-        Powder(name='6/7', omega=0.02, rho=1.6e3, f_powd=988e3, Ti=2800., Jk=343.8e3, alpha=1.038e-3, teta=0.236,
+        Powder(name='6/7', omega=0.01, rho=1.6e3, f_powd=988e3, Ti=2800., Jk=343.8e3, alpha=1.038e-3, teta=0.236,
+               Zk=1.53, kappa1=0.239, lambd1=2.26, mu1=0., kappa2=0.835, lambd2=-0.943, mu2=0.))
+    int_bal_cond.add_powder(
+        Powder(name='6/7', omega=0.01, rho=1.6e3, f_powd=988e3, Ti=2800., Jk=343.8e3, alpha=1.038e-3, teta=0.236,
                Zk=1.53, kappa1=0.239, lambd1=2.26, mu1=0., kappa2=0.835, lambd2=-0.943, mu2=0.))
 
     app = QtWidgets.QApplication(sys.argv)
