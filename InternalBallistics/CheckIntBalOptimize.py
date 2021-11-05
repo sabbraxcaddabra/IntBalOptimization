@@ -1,5 +1,5 @@
 from IntBalClasses import ArtSystem, Powder, IntBalParams
-from optimize.SolveIntBal import solve_ib, solve_ib_ab5
+from Optimize.SolveIntBal import solve_ib, solve_ib_ab5
 
 
 if __name__ == '__main__':
