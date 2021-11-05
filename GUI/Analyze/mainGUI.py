@@ -3,6 +3,8 @@ from InternalBallistics.Analyze.SolveIntBal import solve_ib
 from InternalBallistics.IntBalClasses import ArtSystem, Powder, IntBalParams
 from PyQt5 import QtWidgets
 from Plots import PlotApp
+from PyQt5 import Qt
+
 
 import AnalyzeGUI
 
