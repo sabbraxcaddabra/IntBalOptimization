@@ -1,13 +1,16 @@
 import sys
-from InternalBallistics.analyze.SolveIntBal import solve_ib
+from InternalBallistics.Analyze.SolveIntBal import solve_ib
 from InternalBallistics.IntBalClasses import ArtSystem, Powder, IntBalParams
-from PyQt5 import QtCore, QtGui, QtWidgets
+from PyQt5 import QtWidgets
 from Plots import PlotApp
+from PyQt5 import Qt
+
 
 import AnalyzeGUI
-from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
-from matplotlib.backends.backend_qt5agg import NavigationToolbar2QT as NavigationToolbar
-import matplotlib.pyplot as plt
+
+"""
+Окно анализа с всплывающим окном графика
+"""
 
 class Res(QtWidgets.QMainWindow, AnalyzeGUI.Ui_Dialog):
     def __init__(self, parent=None) -> object:
