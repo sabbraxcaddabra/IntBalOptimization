@@ -18,13 +18,13 @@
   </property>
   <property name="minimumSize">
    <size>
-    <width>500</width>
+    <width>723</width>
     <height>500</height>
    </size>
   </property>
   <property name="maximumSize">
    <size>
-    <width>1193</width>
+    <width>723</width>
     <height>500</height>
    </size>
   </property>
@@ -123,7 +123,7 @@
    </column>
    <column>
     <property name="text">
-     <string>l₀, м</string>
+     <string>l₀ , м</string>
     </property>
    </column>
    <column>

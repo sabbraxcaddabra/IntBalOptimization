@@ -105,6 +105,18 @@
        <height>491</height>
       </rect>
      </property>
+     <property name="minimumSize">
+      <size>
+       <width>345</width>
+       <height>491</height>
+      </size>
+     </property>
+     <property name="maximumSize">
+      <size>
+       <width>345</width>
+       <height>491</height>
+      </size>
+     </property>
      <property name="font">
       <font>
        <pointsize>8</pointsize>
@@ -115,6 +127,12 @@
      <property name="focusPolicy">
       <enum>Qt::NoFocus</enum>
      </property>
+     <property name="verticalScrollBarPolicy">
+      <enum>Qt::ScrollBarAlwaysOff</enum>
+     </property>
+     <property name="horizontalScrollBarPolicy">
+      <enum>Qt::ScrollBarAlwaysOn</enum>
+     </property>
      <property name="autoScrollMargin">
       <number>10</number>
      </property>
@@ -124,6 +142,12 @@
      <property name="textElideMode">
       <enum>Qt::ElideRight</enum>
      </property>
+     <attribute name="horizontalHeaderVisible">
+      <bool>true</bool>
+     </attribute>
+     <attribute name="verticalHeaderMinimumSectionSize">
+      <number>30</number>
+     </attribute>
      <row>
       <property name="text">
        <string>Марка пороха: </string>
@@ -399,10 +423,22 @@
      <property name="geometry">
       <rect>
        <x>20</x>
-       <y>40</y>
-       <width>341</width>
+       <y>30</y>
+       <width>340</width>
        <height>272</height>
       </rect>
+     </property>
+     <property name="minimumSize">
+      <size>
+       <width>340</width>
+       <height>272</height>
+      </size>
+     </property>
+     <property name="maximumSize">
+      <size>
+       <width>340</width>
+       <height>272</height>
+      </size>
      </property>
      <property name="font">
       <font>
@@ -414,8 +450,14 @@
      <property name="focusPolicy">
       <enum>Qt::NoFocus</enum>
      </property>
+     <property name="contextMenuPolicy">
+      <enum>Qt::CustomContextMenu</enum>
+     </property>
      <property name="inputMethodHints">
       <set>Qt::ImhNone</set>
+     </property>
+     <property name="verticalScrollBarPolicy">
+      <enum>Qt::ScrollBarAsNeeded</enum>
      </property>
      <property name="autoScrollMargin">
       <number>10</number>
@@ -423,8 +465,20 @@
      <attribute name="horizontalHeaderVisible">
       <bool>false</bool>
      </attribute>
+     <attribute name="horizontalHeaderDefaultSectionSize">
+      <number>100</number>
+     </attribute>
+     <attribute name="horizontalHeaderMinimumSectionSize">
+      <number>30</number>
+     </attribute>
      <attribute name="verticalHeaderVisible">
       <bool>true</bool>
+     </attribute>
+     <attribute name="verticalHeaderDefaultSectionSize">
+      <number>30</number>
+     </attribute>
+     <attribute name="verticalHeaderMinimumSectionSize">
+      <number>30</number>
      </attribute>
      <row>
       <property name="text">
@@ -537,6 +591,9 @@
       <property name="textAlignment">
        <set>AlignCenter</set>
       </property>
+      <property name="flags">
+       <set>ItemIsDragEnabled|ItemIsUserCheckable|ItemIsEnabled</set>
+      </property>
      </item>
      <item row="1" column="0">
       <property name="text">
@@ -545,6 +602,9 @@
       <property name="textAlignment">
        <set>AlignCenter</set>
       </property>
+      <property name="flags">
+       <set>ItemIsDragEnabled|ItemIsUserCheckable|ItemIsEnabled</set>
+      </property>
      </item>
      <item row="2" column="0">
       <property name="text">
@@ -552,6 +612,9 @@
       </property>
       <property name="textAlignment">
        <set>AlignCenter</set>
+      </property>
+      <property name="flags">
+       <set>ItemIsDragEnabled|ItemIsUserCheckable|ItemIsEnabled</set>
       </property>
      </item>
      <item row="3" column="0">
