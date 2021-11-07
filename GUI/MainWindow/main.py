@@ -1,9 +1,8 @@
 import sys
-
+# Моё последнеее сохранение
 from PyQt5 import QtWidgets, Qt, QtCore, QtGui
 from PyQt5.QtCore import QDir
 from PyQt5.QtWidgets import QMessageBox, QFileDialog, QHeaderView
-from InternalBallistics.Analyze.SolveIntBal import solve_ib
 from InternalBallistics.IntBalClasses import ArtSystem, Powder, IntBalParams
 from GUI.Analyze.AnalysisApp import AnalysisApp
 
@@ -46,8 +45,6 @@ class InitApp(QtWidgets.QMainWindow, initGUI.Ui_initWindow):
         self.selCellDel = self.tableInitPowders.currentColumn()+1
         if self.selCellDel == 0:
             self.selCellDel = None
-
-
     # Метод удаляет колонку для пороха
     def delColumnPowder(self):
         if self.selCellDel is not None:
@@ -107,18 +104,12 @@ class InitApp(QtWidgets.QMainWindow, initGUI.Ui_initWindow):
         for j in range(countCol):
             NamePowd = self.tableInitPowders.item(0, j).text()
             CharPowd = [float(self.tableInitPowders.item(i, j).text()) for i in range(1, 15)]
-            print(NamePowd, CharPowd)
 
             int_bal_cond.add_powder(
                 Powder(name=NamePowd, omega=CharPowd[0], rho=CharPowd[1], f_powd=CharPowd[2], Ti=CharPowd[3], Jk=CharPowd[4], alpha=CharPowd[5], teta=CharPowd[6],
                 Zk=CharPowd[7], kappa1=CharPowd[8], lambd1=CharPowd[9], mu1=CharPowd[10], kappa2=CharPowd[11], lambd2=CharPowd[12], mu2=CharPowd[13]))
         self.DialogAnalysis = AnalysisApp(int_bal_cond=int_bal_cond)
         self.DialogAnalysis.show()
-
-
-
-
-
 
     # Метод производит сохранение файла
     def FileSave(self):
@@ -160,6 +151,7 @@ class InitApp(QtWidgets.QMainWindow, initGUI.Ui_initWindow):
 
     # Метод производит открытия файла сохранения
     def FileOpen(self):
+
         name = "InitSave.txt"
         direct = QDir.currentPath()
         filename = QFileDialog.getOpenFileName(self,"Открыть исходные данные", direct+"/"+name, "TXT (*.txt)")[0]
@@ -167,6 +159,16 @@ class InitApp(QtWidgets.QMainWindow, initGUI.Ui_initWindow):
         try:
 
             with open(filename, 'r', encoding='utf8') as f:
+                # Очищаем все исходные данные перед импортом сохранения
+                self.tableInitArtSys.clearContents()
+
+                self.val_PressIgnit.clear()
+                self.val_PressForc.clear()
+
+                valCol = self.tableInitPowders.columnCount()
+
+                for j in range(valCol, -1, -1):
+                    self.tableInitPowders.removeColumn(j)
 
                 #Считываем и сохраняем давление форсирования
 
@@ -457,9 +459,6 @@ class ArtSysApp(QtWidgets.QMainWindow, artsysGUI.Ui_DialogArtSys):
             errorSelArtSys.setIcon(QMessageBox.Critical)
             errorSelArtSys.setStandardButtons(QMessageBox.Ok)
             errorSelArtSys.exec()
-
-
-
 
 
 
