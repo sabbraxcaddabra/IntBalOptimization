@@ -107,6 +107,7 @@ def solve_ib(P0, PV, k50, S, W0, l_k, l_ps, omega_sum, qfi, l_d, powders, tmax =
             lk = y[1]
         if t0 > tmax:
             raise Exception("Превышено максимальное время выстрела\nОшибка расчета!")
+    print('Расчет завершен успешно')
     return y, p_mean_max, p_sn_max, p_kn_max, lk
 
 @njit
