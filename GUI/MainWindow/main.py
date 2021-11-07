@@ -3,6 +3,7 @@ import matplotlib.pyplot as plt
 
 from PyQt5 import QtWidgets, Qt, QtCore, QtGui
 from PyQt5.QtCore import QDir
+from PyQt5.QtGui import QFont
 from PyQt5.QtWidgets import QMessageBox, QFileDialog, QHeaderView
 from InternalBallistics.Analyze.SolveIntBal import solve_ib
 from InternalBallistics.IntBalClasses import ArtSystem, Powder, IntBalParams
@@ -147,8 +148,6 @@ class InitApp(QtWidgets.QMainWindow, initGUI.Ui_initWindow):
         except FileNotFoundError:
             pass
 
-
-
     # Метод производит открытия файла сохранения
     def FileOpen(self):
         name = "InitSave.txt"
@@ -156,7 +155,9 @@ class InitApp(QtWidgets.QMainWindow, initGUI.Ui_initWindow):
         filename = QFileDialog.getOpenFileName(self,"Открыть исходные данные", direct+"/"+name, "TXT (*.txt)")[0]
 
         try:
+
             with open(filename, 'r', encoding='utf8') as f:
+
                 #Считываем и сохраняем давление форсирования
 
                 line = f.readline()
@@ -188,12 +189,11 @@ class InitApp(QtWidgets.QMainWindow, initGUI.Ui_initWindow):
                         a.setTextAlignment(QtCore.Qt.AlignCenter)
                         self.tableInitPowders.setItem(i, count, a)
                     count += 1
-
+            # Проверяем все импортированные данные, если файл сохранения был нарушен, пользователь получит ошибку и не сможет выполнить расчёт
+            if not self.CheckInit():
+                return False
         except FileNotFoundError:
             pass
-        # Проверяем все импортированные данные, если файл сохранения был нарушен, пользователь получит ошибку и не сможет выполнить расчёт
-        if not self.CheckInit():
-            return False
 
     # Метод добавляет выбранный порох в таблицу
     def sel_Powder(self, CharPowder):
@@ -219,6 +219,7 @@ class InitApp(QtWidgets.QMainWindow, initGUI.Ui_initWindow):
             a = Qt.QTableWidgetItem(CharPowder[i])
             a.setTextAlignment(QtCore.Qt.AlignCenter)
             self.tableInitPowders.setItem(i+1, curColumns, a)
+
     # Метод добавляет выбранную арт. систему в таблицу
     def sel_ArtSys(self, CharArtSys):
         #Вставляем название орудия
@@ -332,27 +333,6 @@ class InitApp(QtWidgets.QMainWindow, initGUI.Ui_initWindow):
 
         # Если всё чики-пуки - возвращаем True
         return True
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 # В этом классе прописываются все взаимодействия с окном ХАРАКТЕРИСТИК ПОРОХОВ
 class PowdersApp(QtWidgets.QMainWindow, powdersGUI.Ui_DialogPowders):
@@ -492,19 +472,31 @@ class AnalysisApp(QtWidgets.QMainWindow, analysisGUI.Ui_Dialog):   #Поменя
         self.butt_raschet.clicked.connect(self.do_raschet)
         self.plot_comboBox.view().pressed.connect(self.handleItemPressed)
 
-
     def first_row_text(self):
         if len(self.int_bal_cond.charge) == 1:
             pass
         else:
-            a = Qt.QTableWidgetItem(u"\u03C80")
+            a = Qt.QTableWidgetItem(u"\u03C8"+"₀")
+
+            # Ставим жирный шрифт у заголовка
+            fontBold = QFont()
+            fontBold.setBold(True)
+            a.setFont(fontBold)
             self.result_table.setHorizontalHeaderItem(3, a)
+
             for i in range(1, len(self.int_bal_cond.charge)):
+                #Делаем красивые индексы
                 powder_num = str(i)
-                #string = u'{string}'.format(string=string)
-                a = Qt.QTableWidgetItem(u"\u03C8{powder_num}".format(powder_num=powder_num))
+                SUB = str.maketrans("0123456789", "₀₁₂₃₄₅₆₇₈₉")
+                LowIndex = powder_num.translate(SUB)
+                a = Qt.QTableWidgetItem(u"\u03C8"+LowIndex)
+                # Ставим жирный шрифт у заголовков
+                fontBold = QFont()
+                fontBold.setBold(True)
+                a.setFont(fontBold)
+
                 self.result_table.insertColumn(3 + i)
-                self.result_table.setHorizontalHeaderItem(3+i, a)
+                self.result_table.setHorizontalHeaderItem(3+i, a)                           # ВОТ ТУТ ВМЕСТЕ С ВАДИМОМ ГЛЯНУТЬ
                 a = Qt.QTableWidgetItem('0.')
                 self.result_table.setItem(0, 3+i, a)
 
@@ -520,7 +512,6 @@ class AnalysisApp(QtWidgets.QMainWindow, analysisGUI.Ui_Dialog):   #Поменя
         self.plot_(item.text())
 
     def do_raschet(self):
-
         methods = {
             'Метод Рунге-Кутты 4-го порядка':'RK4',
             'Метод Адамса-Башфорда 5-го порядка':'AB5'
@@ -532,11 +523,8 @@ class AnalysisApp(QtWidgets.QMainWindow, analysisGUI.Ui_Dialog):   #Поменя
 
         ts, ys, p_mean, p_sn, p_kn = solve_ib(*self.int_bal_cond.create_params_tuple(), method=methods[method_], tstep=tau)
 
-
         self.lineEdit_GunSpeed.setText(str(round(ys[0][-1], 1)))
         self.lineEdit_AverPress.setText(str(round(max(p_mean)*1e-6, 2)))
-
-
 
         self.current_result = {
             'ts':ts,
@@ -587,7 +575,6 @@ class AnalysisApp(QtWidgets.QMainWindow, analysisGUI.Ui_Dialog):   #Поменя
 
         # refresh canvas
         self.canvas.draw()
-
     def _velocity_graphic(self, title='Скорость снаряда'):
         velocity = self.current_result['ys'][0]
         l_d = self.current_result['ys'][1]
@@ -608,7 +595,6 @@ class AnalysisApp(QtWidgets.QMainWindow, analysisGUI.Ui_Dialog):   #Поменя
         ax.grid()
 
         self.canvas.draw()
-
     def _fill_result_table(self):
         """
         Заполнение таблицы результатов
@@ -626,6 +612,8 @@ class AnalysisApp(QtWidgets.QMainWindow, analysisGUI.Ui_Dialog):   #Поменя
             for i, p in enumerate(p_map, start=index+1):
                 a = Qt.QTableWidgetItem(str(round(p[timestep]*1e-6, 2)))
                 self.result_table.setItem(timestep, i, a)
+
+
 
 
 

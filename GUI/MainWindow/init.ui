@@ -119,7 +119,7 @@
      </property>
      <property name="font">
       <font>
-       <pointsize>8</pointsize>
+       <pointsize>9</pointsize>
        <weight>50</weight>
        <bold>false</bold>
       </font>
@@ -164,7 +164,7 @@
      </row>
      <row>
       <property name="text">
-       <string>Масса навески, кг: </string>
+       <string>Масса, кг: </string>
       </property>
       <property name="font">
        <font>
@@ -178,7 +178,7 @@
      </row>
      <row>
       <property name="text">
-       <string>Delta, кг/м³: </string>
+       <string>δ, кг/м³: </string>
       </property>
       <property name="font">
        <font>
@@ -206,7 +206,7 @@
      </row>
      <row>
       <property name="text">
-       <string>T1, К: </string>
+       <string>T₁, К: </string>
       </property>
       <property name="font">
        <font>
@@ -276,7 +276,7 @@
      </row>
      <row>
       <property name="text">
-       <string>Κ1: </string>
+       <string>Κ₁: </string>
       </property>
       <property name="font">
        <font>
@@ -290,7 +290,7 @@
      </row>
      <row>
       <property name="text">
-       <string>λ1: </string>
+       <string>λ₁: </string>
       </property>
       <property name="font">
        <font>
@@ -304,7 +304,7 @@
      </row>
      <row>
       <property name="text">
-       <string>μ1: </string>
+       <string>μ₁: </string>
       </property>
       <property name="font">
        <font>
@@ -318,7 +318,7 @@
      </row>
      <row>
       <property name="text">
-       <string>Κ2: </string>
+       <string>Κ₂: </string>
       </property>
       <property name="font">
        <font>
@@ -332,7 +332,7 @@
      </row>
      <row>
       <property name="text">
-       <string>λ2: </string>
+       <string>λ₂: </string>
       </property>
       <property name="font">
        <font>
@@ -346,7 +346,7 @@
      </row>
      <row>
       <property name="text">
-       <string>μ2: </string>
+       <string>μ₂: </string>
       </property>
       <property name="font">
        <font>
@@ -442,7 +442,7 @@
      </property>
      <property name="font">
       <font>
-       <pointsize>8</pointsize>
+       <pointsize>9</pointsize>
        <weight>50</weight>
        <bold>false</bold>
       </font>
