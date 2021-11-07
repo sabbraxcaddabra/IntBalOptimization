@@ -1,28 +1,38 @@
 import sys
-from PyQt5 import QtWidgets, Qt, QtCore
-from PyQt5.QtWidgets import QMessageBox
 
-import artsysGUI
-import initGUI                               #конвертированный фал дизайна .py
-import powdersGUI                            #конвертированный фал дизайна .py
+from PyQt5 import QtWidgets, Qt, QtCore, QtGui
+from PyQt5.QtCore import QDir
+from PyQt5.QtWidgets import QMessageBox, QFileDialog, QHeaderView
+from InternalBallistics.Analyze.SolveIntBal import solve_ib
+from InternalBallistics.IntBalClasses import ArtSystem, Powder, IntBalParams
+from GUI.Analyze.AnalysisApp import AnalysisApp
 
 
-#В этом классе прописываются все взаимодействия с окном ИСХОДНЫХ ДАННЫХ
+
+import artsysGUI                             #конвертированный в .py фал дизайна окна хар-к арт. ситсем
+import initGUI                               #конвертированный в .py фал дизайна окна исходных данных
+import powdersGUI                            #конвертированный в .py фал дизайна окна характеристик порохов
+
+# В этом классе прописываются все взаимодействия с окном ИСХОДНЫХ ДАННЫХ
 class InitApp(QtWidgets.QMainWindow, initGUI.Ui_initWindow):
     selCellDel = None  # Переменная хранит в себе выбранную строку для удаления(в таблице исходных данных порохов)
     def __init__(self):
         super().__init__()
         self.setupUi(self)
-        #Функции вызываемые событиями
+        self.tableInitArtSys.verticalHeader().setSectionResizeMode(QHeaderView.Fixed)   # Запрещаем растягивать заголовки строк таблицы арт. систем
+        self.tableInitPowders.verticalHeader().setSectionResizeMode(QHeaderView.Fixed)  # Запрещаем растягивать заголовки строк таблицы порохов
+        self.tableInitPowders.horizontalHeader().setSectionResizeMode(QHeaderView.Fixed) # Запрещаем растягивать заголовки столбцов таблицы порохов
+
+
+    #Обработка событий
         self.act_powders.triggered.connect(self.PowdersWin)                 # Вызываем окно базы порохов
         self.act_artsys.triggered.connect(self.ArtSysWin)                   # Вызываем окно базы арт.систем
-
-        #self.tableInitPowders.cellChanged.connect(self.CellFormPowd)       # Центрируем текст в таблице порохов
-
         self.butt_add.clicked.connect(self.addColumnPowder)                 # Добавляет пустую колонку для пороха
         self.tableInitPowders.horizontalHeader().sectionClicked.connect(self.selDelColumnPowder)           # Отслеживаем клик по шапке строки
         self.butt_del.clicked.connect(self.delColumnPowder)                 # Удаляет последнюю колонку в таблице порохов
-
+        self.act_save.triggered.connect(self.FileSave)                      # Вызывваем окно сохранения файла
+        self.act_open.triggered.connect(self.FileOpen)                      # Вызываем окно открытия файла
+        self.butt_anal.clicked.connect(self.StartAnalysis)                  # Вызываем окно анализа
 
 
     # Метод добавляет колонку для пороха
@@ -37,9 +47,10 @@ class InitApp(QtWidgets.QMainWindow, initGUI.Ui_initWindow):
         if self.selCellDel == 0:
             self.selCellDel = None
 
+
     # Метод удаляет колонку для пороха
     def delColumnPowder(self):
-        if self.selCellDel != None:
+        if self.selCellDel is not None:
             delCol = QMessageBox()
             delCol.setWindowTitle("Подтверждение")
             delCol.setText("Вы точно хотите удалить колонку №"+str(self.selCellDel)+'?')
@@ -55,8 +66,7 @@ class InitApp(QtWidgets.QMainWindow, initGUI.Ui_initWindow):
             res = delCol.exec()
             if res == QMessageBox.Yes:
                 self.tableInitPowders.removeColumn(self.selCellDel-1)
-                if (self.selCellDel-1) == 0:
-                    self.selCellDel = None
+                self.selCellDel = None
         else:
             errordelCol = QMessageBox()
             errordelCol.setWindowTitle("Ошибка")
@@ -66,10 +76,6 @@ class InitApp(QtWidgets.QMainWindow, initGUI.Ui_initWindow):
             buttCancel = errordelCol.button(QMessageBox.Cancel)
             buttCancel.setText("Отмена")
             errordelCol.exec()
-
-
-
-
     # Метод вызывает окно характеристик порохов
     def PowdersWin(self):
         self.DialogPowd = PowdersApp(self)
@@ -81,6 +87,117 @@ class InitApp(QtWidgets.QMainWindow, initGUI.Ui_initWindow):
 
 
 
+
+    # Метод вызывает окно анализа
+    def StartAnalysis(self):
+        # Проверяем все исходные данные перед расчётом
+        if not self.CheckInit():
+            return False
+        artsys = ArtSystem(name='2А42', d=.03, S=0.000735299, q=0.389, W0=0.125E-3, l_d=2.263, l_k=0.12,
+                           l0=0.125E-3 / 0.000735299, Kf=1.136)
+        int_bal_cond = IntBalParams(syst=artsys, P0=50e6, PV=4e6)
+        int_bal_cond.add_powder(
+            Powder(name='6/7', omega=0.07, rho=1.6e3, f_powd=988e3, Ti=2800., Jk=343.8e3, alpha=1.038e-3, teta=0.236,
+                   Zk=1.53, kappa1=0.239, lambd1=2.26, mu1=0., kappa2=0.835, lambd2=-0.943, mu2=0.))
+        int_bal_cond.add_powder(
+            Powder(name='6/7', omega=0.03, rho=1.6e3, f_powd=988e3, Ti=2800., Jk=343.8e3, alpha=1.038e-3, teta=0.236,
+                   Zk=1.53, kappa1=0.239, lambd1=2.26, mu1=0., kappa2=0.835, lambd2=-0.943, mu2=0.))
+        int_bal_cond.add_powder(
+            Powder(name='6/7', omega=0.01, rho=1.6e3, f_powd=988e3, Ti=2800., Jk=343.8e3, alpha=1.038e-3, teta=0.236,
+                   Zk=1.53, kappa1=0.239, lambd1=2.26, mu1=0., kappa2=0.835, lambd2=-0.943, mu2=0.))
+        int_bal_cond.add_powder(
+            Powder(name='6/7', omega=0.01, rho=1.6e3, f_powd=988e3, Ti=2800., Jk=343.8e3, alpha=1.038e-3, teta=0.236,
+                   Zk=1.53, kappa1=0.239, lambd1=2.26, mu1=0., kappa2=0.835, lambd2=-0.943, mu2=0.))
+        self.DialogAnalysis = AnalysisApp(int_bal_cond=int_bal_cond)
+        self.DialogAnalysis.show()
+
+
+
+
+    # Метод производит сохранение файла
+    def FileSave(self):
+        # Проверяем все исходные данные перед сохранением
+        if not self.CheckInit():
+            return False
+
+        name = "InitSave.txt"
+        direct = QDir.currentPath()
+        filename = QFileDialog.getSaveFileName(self,"Сохранение исходных данных", direct+"/"+name, "TXT (*.txt)")[0]
+        try:
+            with open(filename, 'w', encoding='utf8') as f:
+                # Считываем и сохраняем давление форсирования
+                line = self.val_PressForc.text()
+                f.write(line+'\n')
+                # Считываем и сохраняем давление воспламенителя
+                line = self.val_PressIgnit.text()
+                f.write(line+'\n')
+
+                # Считываем и сохраняем характеристики арт. системы
+                for i in range(9):
+                    val = self.tableInitArtSys.item(i, 0).text()
+                    if i == 0:
+                        val = val.replace(' ', '_')         #Возвращаем на место нижние подчёркивания в названии пороха, чтобы не было проблем с чтением файла
+                    f.write(val+" ")
+                f.write('\n')
+
+                # Считываем и сохраняем характеристики порохов
+                AllCol = self.tableInitPowders.columnCount()        #Узнаём текущее количество порохов
+                for j in range(AllCol):
+                    for i in range(15):
+                        val = self.tableInitPowders.item(i, j).text()
+                        if i == 0:
+                            val = val.replace(' ','_')  # Возвращаем на место нижние подчёркивания в названии пороха, чтобы не было проблем с чтением файла
+                        f.write(val + " ")
+                    f.write('\n')
+        except FileNotFoundError:
+            pass
+
+    # Метод производит открытия файла сохранения
+    def FileOpen(self):
+        name = "InitSave.txt"
+        direct = QDir.currentPath()
+        filename = QFileDialog.getOpenFileName(self,"Открыть исходные данные", direct+"/"+name, "TXT (*.txt)")[0]
+
+        try:
+
+            with open(filename, 'r', encoding='utf8') as f:
+
+                #Считываем и сохраняем давление форсирования
+
+                line = f.readline()
+                self.val_PressForc.setText(line.strip())
+
+                # Считываем и сохраняем давление воспламенителя
+                line = f.readline()
+                self.val_PressIgnit.setText(line.strip())
+
+                # # Считываем и сохраняем характеристики арт. системы
+                line = f.readline()
+                line = line.split(' ')
+                for i in range(9):
+                    if i == 0:
+                        line[i] = line[i].replace("_", " ")
+                    a = Qt.QTableWidgetItem(str(line[i]))
+                    a.setTextAlignment(QtCore.Qt.AlignCenter)
+                    self.tableInitArtSys.setItem(i, 0, a)
+
+                # Считываем и сохраняем характеристики порохов
+                count = 0
+                for line in f:
+                    self.tableInitPowders.insertColumn(count)
+                    currline = line.split(' ')
+                    for i in range(15):
+                        if i == 0:
+                            currline[i] = currline[i].replace("_"," ")
+                        a = Qt.QTableWidgetItem(str(currline[i]))
+                        a.setTextAlignment(QtCore.Qt.AlignCenter)
+                        self.tableInitPowders.setItem(i, count, a)
+                    count += 1
+            # Проверяем все импортированные данные, если файл сохранения был нарушен, пользователь получит ошибку и не сможет выполнить расчёт
+            if not self.CheckInit():
+                return False
+        except FileNotFoundError:
+            pass
 
     # Метод добавляет выбранный порох в таблицу
     def sel_Powder(self, CharPowder):
@@ -106,6 +223,7 @@ class InitApp(QtWidgets.QMainWindow, initGUI.Ui_initWindow):
             a = Qt.QTableWidgetItem(CharPowder[i])
             a.setTextAlignment(QtCore.Qt.AlignCenter)
             self.tableInitPowders.setItem(i+1, curColumns, a)
+
     # Метод добавляет выбранную арт. систему в таблицу
     def sel_ArtSys(self, CharArtSys):
         #Вставляем название орудия
@@ -121,26 +239,114 @@ class InitApp(QtWidgets.QMainWindow, initGUI.Ui_initWindow):
             a = Qt.QTableWidgetItem(CharArtSys[i])
             a.setTextAlignment(QtCore.Qt.AlignCenter)
             self.tableInitArtSys.setItem(i+1, 0, a)
-
-
-
-    #Метод настраивает центрирование текста в ячейках таблицы порохов(в новых колонках)
+    # Метод настраивает центрирование текста в ячейках таблицы порохов(в новых колонках)
     def CellAlignCenter(self, Column):
         for i in range(14):
             item = QtWidgets.QTableWidgetItem()  # вот тут в одну функцию сделать
             item.setTextAlignment(QtCore.Qt.AlignCenter)
             self.tableInitPowders.setItem(i, Column, item)
 
+    # Метод выполняет проверку всех введённых исходных данных
+    def CheckInit(self):
 
+        # В случае нахождения будем вызывать диалоговое окно и передавать в него текст ошибки
+        def ErrorDialog(textError):
+            errorInit = QMessageBox()
+            errorInit.setWindowTitle("Ошибка в исходных данных!")
+            errorInit.setText(textError)
+            errorInit.setIcon(QMessageBox.Critical)
+            errorInit.setStandardButtons(QMessageBox.Cancel)
+            buttCancel = errorInit.button(QMessageBox.Cancel)
+            buttCancel.setText("Отмена")
+            errorInit.exec()
 
+        # Проверяем таблицу характеристик порохов
+        amountCol = self.tableInitPowders.columnCount() # Узнаём текущее количество колонок порохов
+        if amountCol == 0:
+            errorText = "Порох не обнаружен!"
+            ErrorDialog(errorText)
+            return False
+        for j in range(amountCol):
+            for i in range(1, 15):      #Проверяем всю таблицу, кроме названия пороха
+                CellVal = self.tableInitPowders.item(i, j).text()
+                # Замена запятой на точку                 (вот здесь бы сделать не замену каждого числа, а только тех, где встречается запятая
+                CellVal = CellVal.replace(",", ".")
+                a = Qt.QTableWidgetItem(CellVal)
+                a.setTextAlignment(QtCore.Qt.AlignCenter)
+                self.tableInitPowders.setItem(i, j, a)
+                CellVal = self.tableInitPowders.item(i, j).text()
+                # Пытаемся значение ячейки преобразовать во float, если не получается - выводим диалоговое с ошибкой
+                try:
+                    CellVal = float(CellVal)
+                except ValueError:
+                    if not CellVal:
+                        errorText = "Заполните все данные в таблице порохов!"
+                        ErrorDialog(errorText)
+                        return False
+                    else:
+                        errorText = "Обнаружено некорректное значение в таблице порохов!"
+                        ErrorDialog(errorText)
+                        return False
 
-#В этом классе прописываются все взаимодействия с окном ХАРАКТЕРИСТИК ПОРОХОВ
+        # Проверяем таблицу характеристик арт. систем
+
+        for i in range(1, 9):      #Проверяем всю таблицу, кроме названия арт системы
+            CellVal = self.tableInitArtSys.item(i, 0).text()
+            # Замена запятой на точку                 (вот здесь бы сделать не замену каждого числа, а только тех, где встречается запятая
+            CellVal = CellVal.replace(",", ".")
+            a = Qt.QTableWidgetItem(CellVal)
+            a.setTextAlignment(QtCore.Qt.AlignCenter)
+            self.tableInitArtSys.setItem(i, 0, a)
+            CellVal = self.tableInitArtSys.item(i, 0).text()
+            # Пытаемся значение ячейки преобразовать во float, если не получается - выводим диалоговое с ошибкой
+            try:
+                CellVal = float(CellVal)
+            except ValueError:
+                if not CellVal:
+                    errorText = "Заполните все данные в таблице арт. систем!"
+                    ErrorDialog(errorText)
+                    return False
+                else:
+                    errorText = "Обнаружено некорректное значение в таблице арт. систем!"
+                    ErrorDialog(errorText)
+                    return False
+
+        # Проверяем параметры заряжания
+        PressForc = self.val_PressForc.text()
+        PressIgnit = self.val_PressIgnit.text()
+
+        if not (PressForc or PressIgnit):
+            errorText = "Укажите все параметры заряжания!"
+            ErrorDialog(errorText)
+            return False
+            # Меняем запятую на точку
+        PressForc = PressForc.replace(",", ".")
+        self.val_PressForc.setText(PressForc)
+
+        PressIgnit = PressIgnit.replace(",", ".")
+        self.val_PressIgnit.setText(PressIgnit)
+
+            # Пытаемся значение ячейки преобразовать во float, если не получается - выводим диалоговое с ошибкой
+        try:
+            PressForc = float(PressForc)
+            PressIgnit = float(PressIgnit)
+        except ValueError:
+            errorText = "Параметры заряжания заданны некорректно!"
+            ErrorDialog(errorText)
+            return False
+
+        # Если всё чики-пуки - возвращаем True
+        return True
+
+# В этом классе прописываются все взаимодействия с окном ХАРАКТЕРИСТИК ПОРОХОВ
 class PowdersApp(QtWidgets.QMainWindow, powdersGUI.Ui_DialogPowders):
     selCellPowd = None # Переменная хранит в себе выбранную строку в базе порохов
     def __init__(self, parent=None):
         super().__init__()
         self.parent = parent
-        self.setupUi(self)                  #Инициилизация дизайна
+        self.setupUi(self)
+        self.tableCharPowders.verticalHeader().setSectionResizeMode(QHeaderView.Fixed)  # Запрещаем растягивать заголовки строк таблицы порохов
+        self.tableCharPowders.horizontalHeader().setSectionResizeMode(QHeaderView.Fixed) # Запрещаем растягивать заголовки столбцов таблицы порохов
 #Считывание порохов из базы в таблицу
         header = self.tableCharPowders.horizontalHeader()
         F = open('PowdersBase.txt', 'r', encoding='utf8')                                               #Открываем файл
@@ -173,7 +379,7 @@ class PowdersApp(QtWidgets.QMainWindow, powdersGUI.Ui_DialogPowders):
     #Передаём выбранный порох в главное окно, если порох не выбран сделать диалоговое окно с ошибкой
     def AddPowder(self):
         charPowders = []
-        if self.selCellPowd:
+        if self.selCellPowd is not None:
             col = 0
             for i in range(14):
                 val = self.tableCharPowders.item(self.selCellPowd, col).text()
@@ -189,15 +395,15 @@ class PowdersApp(QtWidgets.QMainWindow, powdersGUI.Ui_DialogPowders):
             errorSelPowd.setStandardButtons(QMessageBox.Ok)
             errorSelPowd.exec()
 
-
-
-#В этом классе прописываются все взаимодействия с окном ХАРАКТЕРИСТИК АРТ. СИСТЕМ
+# В этом классе прописываются все взаимодействия с окном ХАРАКТЕРИСТИК АРТ. СИСТЕМ
 class ArtSysApp(QtWidgets.QMainWindow, artsysGUI.Ui_DialogArtSys):
     selCellArt = None # Переменная хранит в себе выбранную строку в базе арт. систем
     def __init__(self, parent=None):
         super().__init__()
         self.parent = parent
         self.setupUi(self)
+        self.tableCharArtSys.verticalHeader().setSectionResizeMode(QHeaderView.Fixed)  # Запрещаем растягивать заголовки строк таблицы арт. систем
+        self.tableCharArtSys.horizontalHeader().setSectionResizeMode(QHeaderView.Fixed) # Запрещаем растягивать заголовки столбцов таблицы арт. систем
     # Считывание арт систему из базы в таблицу
         header = self.tableCharArtSys.horizontalHeader()
         F = open('ArtSysBase.txt', 'r', encoding='utf8')
@@ -230,7 +436,7 @@ class ArtSysApp(QtWidgets.QMainWindow, artsysGUI.Ui_DialogArtSys):
     #Передаём выбранную арт. систему в главное окно, если система не выбрана сделать диалоговое окно с ошибкой
     def AddArtSys(self):
         charArtSys = []
-        if self.selCellArt:
+        if self.selCellArt is not None:
             col = 0
             for i in range(8):
                 val = self.tableCharArtSys.item(self.selCellArt, col).text()
@@ -252,12 +458,10 @@ class ArtSysApp(QtWidgets.QMainWindow, artsysGUI.Ui_DialogArtSys):
 
 
 
-
-
-
 #Функция вызывает окно исходных данных
 def InitWin():
     app = QtWidgets.QApplication(sys.argv)
+    app.setWindowIcon(QtGui.QIcon("E3.ico"))
     InitWindow = InitApp()
     InitWindow.show()
     sys.exit(app.exec_())

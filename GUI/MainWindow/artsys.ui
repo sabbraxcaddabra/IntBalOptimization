@@ -18,13 +18,13 @@
   </property>
   <property name="minimumSize">
    <size>
-    <width>500</width>
+    <width>723</width>
     <height>500</height>
    </size>
   </property>
   <property name="maximumSize">
    <size>
-    <width>1193</width>
+    <width>723</width>
     <height>500</height>
    </size>
   </property>
@@ -54,6 +54,8 @@
    <property name="font">
     <font>
      <pointsize>8</pointsize>
+     <weight>50</weight>
+     <bold>false</bold>
     </font>
    </property>
    <property name="focusPolicy">
@@ -95,40 +97,88 @@
     <property name="text">
      <string>Орудие</string>
     </property>
+    <property name="font">
+     <font>
+      <weight>75</weight>
+      <bold>true</bold>
+     </font>
+    </property>
    </column>
    <column>
     <property name="text">
      <string>d, м</string>
+    </property>
+    <property name="font">
+     <font>
+      <weight>75</weight>
+      <bold>true</bold>
+     </font>
     </property>
    </column>
    <column>
     <property name="text">
      <string>S, м²</string>
     </property>
+    <property name="font">
+     <font>
+      <weight>75</weight>
+      <bold>true</bold>
+     </font>
+    </property>
    </column>
    <column>
     <property name="text">
      <string>W₀ , м³</string>
+    </property>
+    <property name="font">
+     <font>
+      <weight>75</weight>
+      <bold>true</bold>
+     </font>
     </property>
    </column>
    <column>
     <property name="text">
      <string>lд, м</string>
     </property>
+    <property name="font">
+     <font>
+      <weight>75</weight>
+      <bold>true</bold>
+     </font>
+    </property>
    </column>
    <column>
     <property name="text">
      <string>lкм, м</string>
     </property>
+    <property name="font">
+     <font>
+      <weight>75</weight>
+      <bold>true</bold>
+     </font>
+    </property>
    </column>
    <column>
     <property name="text">
-     <string>l₀, м</string>
+     <string>l₀ , м</string>
+    </property>
+    <property name="font">
+     <font>
+      <weight>75</weight>
+      <bold>true</bold>
+     </font>
     </property>
    </column>
    <column>
     <property name="text">
      <string>kφ</string>
+    </property>
+    <property name="font">
+     <font>
+      <weight>75</weight>
+      <bold>true</bold>
+     </font>
     </property>
    </column>
    <item row="0" column="0">

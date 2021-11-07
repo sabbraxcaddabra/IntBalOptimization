@@ -1,16 +1,23 @@
-from PyQt5 import QtCore, QtGui, QtWidgets, Qt
-
+import matplotlib.pyplot as plt
 import sys
+
+import analysisGUI                           #конвертированный в .py фал дизайна окна анализа
+from PyQt5.QtGui import QFont
+
 from InternalBallistics.Analyze.SolveIntBal import solve_ib
 from InternalBallistics.IntBalClasses import ArtSystem, Powder, IntBalParams
 
-import TryToMakeTabs
-
 from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
 from matplotlib.backends.backend_qt5agg import NavigationToolbar2QT as NavigationToolbar
-import matplotlib.pyplot as plt
 
-class AnalyzeApp(QtWidgets.QMainWindow, TryToMakeTabs.Ui_Dialog):
+from PyQt5 import QtWidgets, Qt, QtCore, QtGui
+
+from PyQt5.QtWidgets import QMessageBox, QHeaderView
+
+
+
+# В этом классе прописываются все взаимодействия с окно АНАЛИЗА
+class AnalysisApp(QtWidgets.QMainWindow, analysisGUI.Ui_Dialog):   #Поменять название Ui_Dialog
     def __init__(self, parent=None, int_bal_cond=None):
         super().__init__()
         self.setupUi(self)
@@ -18,43 +25,46 @@ class AnalyzeApp(QtWidgets.QMainWindow, TryToMakeTabs.Ui_Dialog):
         self.int_bal_cond = int_bal_cond
 
         self.first_row_text()
-
-
         # a figure instance to plot on
         self.figure = plt.figure()
-
         # this is the Canvas Widget that displays the `figure`
         # it takes the `figure` instance as a parameter to __init__
         self.canvas = FigureCanvas(self.figure)
-
         # this is the Navigation widget
         # it takes the Canvas widget and a parent
         self.toolbar = NavigationToolbar(self.canvas, self)
-
         self.plot_Layout.addWidget(self.toolbar)
         self.plot_Layout.addWidget(self.canvas)
-
         self.current_result = None
-
-        self.short_res_textEdit.setReadOnly(True)
-
+        #self.short_res_textEdit.setReadOnly(True)
         self.butt_raschet.clicked.connect(self.do_raschet)
-
         self.plot_comboBox.view().pressed.connect(self.handleItemPressed)
-
 
     def first_row_text(self):
         if len(self.int_bal_cond.charge) == 1:
             pass
         else:
-            a = Qt.QTableWidgetItem(u"\u03C80")
+            a = Qt.QTableWidgetItem(u"\u03C8"+"₀")
+
+            # Ставим жирный шрифт у заголовка
+            fontBold = QFont()
+            fontBold.setBold(True)
+            a.setFont(fontBold)
             self.result_table.setHorizontalHeaderItem(3, a)
+
             for i in range(1, len(self.int_bal_cond.charge)):
+                #Делаем красивые индексы
                 powder_num = str(i)
-                #string = u'{string}'.format(string=string)
-                a = Qt.QTableWidgetItem(u"\u03C8{powder_num}".format(powder_num=powder_num))
+                SUB = str.maketrans("0123456789", "₀₁₂₃₄₅₆₇₈₉")
+                LowIndex = powder_num.translate(SUB)
+                a = Qt.QTableWidgetItem(u"\u03C8"+LowIndex)
+                # Ставим жирный шрифт у заголовков
+                fontBold = QFont()
+                fontBold.setBold(True)
+                a.setFont(fontBold)
+
                 self.result_table.insertColumn(3 + i)
-                self.result_table.setHorizontalHeaderItem(3+i, a)
+                self.result_table.setHorizontalHeaderItem(3+i, a)                           # ВОТ ТУТ ВМЕСТЕ С ВАДИМОМ ГЛЯНУТЬ
                 a = Qt.QTableWidgetItem('0.')
                 self.result_table.setItem(0, 3+i, a)
 
@@ -70,7 +80,6 @@ class AnalyzeApp(QtWidgets.QMainWindow, TryToMakeTabs.Ui_Dialog):
         self.plot_(item.text())
 
     def do_raschet(self):
-
         methods = {
             'Метод Рунге-Кутты 4-го порядка':'RK4',
             'Метод Адамса-Башфорда 5-го порядка':'AB5'
@@ -81,12 +90,9 @@ class AnalyzeApp(QtWidgets.QMainWindow, TryToMakeTabs.Ui_Dialog):
         tau = float(self.step_lineEdit.text())
 
         ts, ys, p_mean, p_sn, p_kn = solve_ib(*self.int_bal_cond.create_params_tuple(), method=methods[method_], tstep=tau)
-        res = (
-            f"Дульная скорость, м/с: {round(ys[0][-1], 1)}",
-            f"Максимальное среднебаллистическое давление, MПа: {round(max(p_mean)*1e-6, 2)}"
-        )
-        res = '\n'.join(res)
-        self.short_res_textEdit.setText(res)
+
+        self.lineEdit_GunSpeed.setText(str(round(ys[0][-1], 1)))
+        self.lineEdit_AverPress.setText(str(round(max(p_mean)*1e-6, 2)))
 
         self.current_result = {
             'ts':ts,
@@ -137,7 +143,6 @@ class AnalyzeApp(QtWidgets.QMainWindow, TryToMakeTabs.Ui_Dialog):
 
         # refresh canvas
         self.canvas.draw()
-
     def _velocity_graphic(self, title='Скорость снаряда'):
         velocity = self.current_result['ys'][0]
         l_d = self.current_result['ys'][1]
@@ -158,7 +163,6 @@ class AnalyzeApp(QtWidgets.QMainWindow, TryToMakeTabs.Ui_Dialog):
         ax.grid()
 
         self.canvas.draw()
-
     def _fill_result_table(self):
         """
         Заполнение таблицы результатов
@@ -176,10 +180,6 @@ class AnalyzeApp(QtWidgets.QMainWindow, TryToMakeTabs.Ui_Dialog):
             for i, p in enumerate(p_map, start=index+1):
                 a = Qt.QTableWidgetItem(str(round(p[timestep]*1e-6, 2)))
                 self.result_table.setItem(timestep, i, a)
-
-
-
-
 
 
 
@@ -202,9 +202,13 @@ def StartApp():
                Zk=1.53, kappa1=0.239, lambd1=2.26, mu1=0., kappa2=0.835, lambd2=-0.943, mu2=0.))
 
     app = QtWidgets.QApplication(sys.argv)
-    MyWindow = AnalyzeApp(int_bal_cond=int_bal_cond)
+    MyWindow = AnalysisApp(int_bal_cond=int_bal_cond)
     MyWindow.show()
     sys.exit(app.exec_())
 
-if __name__ == "__main__":
+
+
+if __name__ =='__main__':
     StartApp()
+
+

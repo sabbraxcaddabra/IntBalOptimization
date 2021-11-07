@@ -54,6 +54,8 @@
    <property name="font">
     <font>
      <pointsize>8</pointsize>
+     <weight>50</weight>
+     <bold>false</bold>
     </font>
    </property>
    <property name="focusPolicy">
@@ -95,70 +97,154 @@
     <property name="text">
      <string>Марка</string>
     </property>
+    <property name="font">
+     <font>
+      <weight>75</weight>
+      <bold>true</bold>
+     </font>
+    </property>
    </column>
    <column>
     <property name="text">
-     <string>Delta, кг/м³</string>
+     <string>δ, кг/м³</string>
+    </property>
+    <property name="font">
+     <font>
+      <weight>75</weight>
+      <bold>true</bold>
+     </font>
     </property>
    </column>
    <column>
     <property name="text">
      <string>f, Дж/кг</string>
     </property>
+    <property name="font">
+     <font>
+      <weight>75</weight>
+      <bold>true</bold>
+     </font>
+    </property>
    </column>
    <column>
     <property name="text">
-     <string>T1, К</string>
+     <string>T₁, К</string>
+    </property>
+    <property name="font">
+     <font>
+      <weight>75</weight>
+      <bold>true</bold>
+     </font>
     </property>
    </column>
    <column>
     <property name="text">
      <string>Iк, Па⋅с</string>
     </property>
+    <property name="font">
+     <font>
+      <weight>75</weight>
+      <bold>true</bold>
+     </font>
+    </property>
    </column>
    <column>
     <property name="text">
      <string>α, м³/кг</string>
+    </property>
+    <property name="font">
+     <font>
+      <weight>75</weight>
+      <bold>true</bold>
+     </font>
     </property>
    </column>
    <column>
     <property name="text">
      <string>θ</string>
     </property>
+    <property name="font">
+     <font>
+      <weight>75</weight>
+      <bold>true</bold>
+     </font>
+    </property>
    </column>
    <column>
     <property name="text">
      <string>Zк</string>
     </property>
-   </column>
-   <column>
-    <property name="text">
-     <string>Κ1</string>
+    <property name="font">
+     <font>
+      <weight>75</weight>
+      <bold>true</bold>
+     </font>
     </property>
    </column>
    <column>
     <property name="text">
-     <string>λ1</string>
+     <string>Κ₁</string>
+    </property>
+    <property name="font">
+     <font>
+      <weight>75</weight>
+      <bold>true</bold>
+     </font>
     </property>
    </column>
    <column>
     <property name="text">
-     <string>μ1</string>
+     <string>λ₁</string>
+    </property>
+    <property name="font">
+     <font>
+      <weight>75</weight>
+      <bold>true</bold>
+     </font>
     </property>
    </column>
    <column>
     <property name="text">
-     <string>Κ2</string>
+     <string>μ₁</string>
+    </property>
+    <property name="font">
+     <font>
+      <weight>75</weight>
+      <bold>true</bold>
+     </font>
     </property>
    </column>
    <column>
     <property name="text">
-     <string>λ2</string>
+     <string>Κ₂</string>
+    </property>
+    <property name="font">
+     <font>
+      <weight>75</weight>
+      <bold>true</bold>
+     </font>
     </property>
    </column>
    <column>
     <property name="text">
-     <string>μ2</string>
+     <string>λ₂</string>
+    </property>
+    <property name="font">
+     <font>
+      <weight>75</weight>
+      <bold>true</bold>
+     </font>
+    </property>
+   </column>
+   <column>
+    <property name="text">
+     <string>μ₂</string>
+    </property>
+    <property name="font">
+     <font>
+      <weight>75</weight>
+      <bold>true</bold>
+     </font>
     </property>
    </column>
    <item row="0" column="0">
