@@ -1,8 +1,12 @@
 import matplotlib.pyplot as plt
 import sys
+
 import analysisGUI                           #конвертированный в .py фал дизайна окна анализа
 from PyQt5.QtGui import QFont
+
 from InternalBallistics.Analyze.SolveIntBal import solve_ib
+from InternalBallistics.IntBalClasses import ArtSystem, Powder, IntBalParams
+
 from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
 from matplotlib.backends.backend_qt5agg import NavigationToolbar2QT as NavigationToolbar
 
@@ -179,15 +183,10 @@ class AnalysisApp(QtWidgets.QMainWindow, analysisGUI.Ui_Dialog):   #Поменя
 
 
 
-def AnalWin():
-    app = QtWidgets.QApplication(sys.argv)
-    app.setWindowIcon(QtGui.QIcon("E3.ico"))
-    InitWindow = AnalysisApp(int_bal_cond=int_bal_cond)
-    InitWindow.show()
-    sys.exit(app.exec_())
-
+def StartApp():
     artsys = ArtSystem(name='2А42', d=.03, S=0.000735299, q=0.389, W0=0.125E-3, l_d=2.263, l_k=0.12,
                        l0=0.125E-3 / 0.000735299, Kf=1.136)
+
     int_bal_cond = IntBalParams(syst=artsys, P0=50e6, PV=4e6)
     int_bal_cond.add_powder(
         Powder(name='6/7', omega=0.07, rho=1.6e3, f_powd=988e3, Ti=2800., Jk=343.8e3, alpha=1.038e-3, teta=0.236,
@@ -202,9 +201,14 @@ def AnalWin():
         Powder(name='6/7', omega=0.01, rho=1.6e3, f_powd=988e3, Ti=2800., Jk=343.8e3, alpha=1.038e-3, teta=0.236,
                Zk=1.53, kappa1=0.239, lambd1=2.26, mu1=0., kappa2=0.835, lambd2=-0.943, mu2=0.))
 
+    app = QtWidgets.QApplication(sys.argv)
+    MyWindow = AnalysisApp(int_bal_cond=int_bal_cond)
+    MyWindow.show()
+    sys.exit(app.exec_())
+
 
 
 if __name__ =='__main__':
-    AnalWin()
+    StartApp()
 
 
