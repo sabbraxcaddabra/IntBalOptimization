@@ -28,7 +28,7 @@ def adams_bashford5(f, y0, t0, t_end, tau, args, stopfunc=None):
         else:
             return np.array(ys).T, np.array(ts)
 
-    while stopfunc(t0, y0):
+    while stopfunc(t0, y0) and t0 < t_end:
         last_dy = f(t0, y0, *args)
         y0 = y0 + tau * ((1901 / 720) * last_dy - (1387 / 360) * dy_que[3] + (109 / 30) * dy_que[2] - (637 / 360) * dy_que[1] + (251 / 720) * dy_que[0])
         t0 += tau
@@ -51,7 +51,7 @@ def runge_kutta4(f, y0, t0, t_end, tau, args, stopfunc=None):
 
     ys = [y0]
     ts = [t0]
-    while stopfunc(t0, y0):
+    while stopfunc(t0, y0) and t0 < t_end:
         y0 = rungeStep(f, t0, y0, tau, args)
         t0 += tau
         ys.append(y0)

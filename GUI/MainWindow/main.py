@@ -97,8 +97,8 @@ class InitApp(QtWidgets.QMainWindow, initGUI.Ui_initWindow):
         artsys = ArtSystem(name=nameArt, d=CharArtSys[0], q=CharArtSys[1], S=CharArtSys[2], W0=CharArtSys[3], l_d=CharArtSys[4], l_k=CharArtSys[5],
                            l0=CharArtSys[6], Kf=CharArtSys[7])
         # Передаём параметры заряжания
-        Pforc = float(self.val_PressForc.text())
-        PIgnit = float(self.val_PressIgnit.text())
+        Pforc = float(self.val_PressForc.text())*1e6
+        PIgnit = float(self.val_PressIgnit.text())*1e6
         int_bal_cond = IntBalParams(syst=artsys, P0=Pforc, PV=PIgnit)
 
         # Передаём характеристики пороха
@@ -112,7 +112,6 @@ class InitApp(QtWidgets.QMainWindow, initGUI.Ui_initWindow):
             int_bal_cond.add_powder(
                 Powder(name=NamePowd, omega=CharPowd[0], rho=CharPowd[1], f_powd=CharPowd[2], Ti=CharPowd[3], Jk=CharPowd[4], alpha=CharPowd[5], teta=CharPowd[6],
                 Zk=CharPowd[7], kappa1=CharPowd[8], lambd1=CharPowd[9], mu1=CharPowd[10], kappa2=CharPowd[11], lambd2=CharPowd[12], mu2=CharPowd[13]))
-
         self.DialogAnalysis = AnalysisApp(int_bal_cond=int_bal_cond)
         self.DialogAnalysis.show()
 
