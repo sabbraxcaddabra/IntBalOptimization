@@ -1,31 +1,40 @@
 import numpy as np
+from numba import njit
 from collections import deque
 import matplotlib.pyplot as plt
 from InternalBallistics.ErrorClasses import *
 
 
-def adams_bashford5(f, y0, t0, t_end, tau, args, stopfunc=None):
+def adams_bashford5(f, y0, t0, t_end, tau, args, stopfunc=None, eventfunc=None):
     def runge_step(f, t, y, tau, args):
         k1 = tau * f(t, y, *args)
-        k2 = tau * f(t, y + k1 / 2, *args)
-        k3 = tau * f(t, y + k2 / 2, *args)
-        k4 = tau * f(t, y + k3, *args)
-        increment = (k1 + 2 * k2 + 2 * k3 + k4) / 6
-        return y + increment, f(t + tau, y + increment, *args)
+        k2 = tau * f(t + (1 / 4) * tau, y + (1 / 4) * k1, *args)
+        k3 = tau * f(t + (3 / 8) * tau, y + (3 / 32) * k1 + (9 / 32) * k2, *args)
+        k4 = tau * f(t + (12 / 13) * tau, y + (1932 / 2197) * k1 - (7200 / 2197) * k2 + (7296 / 2197) * k3, *args)
+        k5 = tau * f(t + tau, y + (439 / 216) * k1 - 8 * k2 + (3680 / 513) * k3 - (845 / 4104) * k4, *args)
+        k6 = tau * f(t + (1 / 2) * tau,
+                     y - (8 / 27) * k1 + 2 * k2 - (3544 / 2565) * k3 + (1859 / 4104) * k4 - (11 / 40) * k5, *args)
+        increment = (16 / 135) * k1 + (6656 / 12825) * k3 + (28561 / 56430) * k4 - (9 / 50) * k5 + (2 / 55) * k6
+        return y+increment, k1
 
     if not stopfunc:
         stopfunc = lambda t, y: t <= t_end
+    if not eventfunc:
+        eventfunc = lambda t, y: False
 
     dy_que = deque(maxlen = 4)
+    event_indices = []
     ys = [y0]
     ts = [t0]
     for _ in range(4):
         y0, dy = runge_step(f, t0, y0, tau, args)
         t0 += tau
-        if stopfunc(t0, y0):
+        if stopfunc(t0, y0) and t0 < t_end:
             ys.append(y0)
             dy_que.append(dy)
             ts.append(t0)
+            if eventfunc(t0, y0):
+                event_indices.append(len(ts)-1)
         else:
             return np.array(ys).T, np.array(ts)
 
@@ -36,9 +45,14 @@ def adams_bashford5(f, y0, t0, t_end, tau, args, stopfunc=None):
         ys.append(y0)
         dy_que.append(last_dy)
         ts.append(t0)
-    return np.array(ys).T, np.array(ts)
+        if eventfunc(t0, y0):
+            event_indices.append(len(ts) - 1)
 
-def runge_kutta4(f, y0, t0, t_end, tau, args, stopfunc=None):
+    return np.array(ys).T, np.array(ts), event_indices
+
+
+
+def runge_kutta4(f, y0, t0, t_end, tau, args, stopfunc=None, eventfunc=None):
     def rungeStep(f, t, y, tau, args):
         k1 = tau * f(t, y, *args)
         k2 = tau * f(t, y + k1 / 2, *args)
@@ -50,6 +64,11 @@ def runge_kutta4(f, y0, t0, t_end, tau, args, stopfunc=None):
     if not stopfunc:
         stopfunc = lambda t, y: t <= t_end
 
+    if not eventfunc:
+        eventfunc = lambda t, y: False
+
+    event_indices = []
+
     ys = [y0]
     ts = [t0]
     while stopfunc(t0, y0) and t0 < t_end:
@@ -57,8 +76,10 @@ def runge_kutta4(f, y0, t0, t_end, tau, args, stopfunc=None):
         t0 += tau
         ys.append(y0)
         ts.append(t0)
-    return np.array(ys).T, np.array(ts)
+        if eventfunc(t0, y0):
+            event_indices.append(len(ts) - 1)
 
+    return np.array(ys).T, np.array(ts), event_indices
 
 def P(y, Pv, lambda_khi, S, W0, qfi, omega_sum, psis, powders):
     thet = theta(psis, powders)
@@ -127,12 +148,22 @@ def int_bal_rs(t, y, P0, PV, k50, S, W0, l_k, l_ps, omega_sum, qfi, powders):
 
 def solve_ib(P0, PV, k50, S, W0, l_k, l_ps, omega_sum, qfi, l_d, powders, method = 'RK4', tmax = 1. , tstep = 1e-5):
     methods = {'AB5':adams_bashford5, 'RK4':runge_kutta4}
+
     y = np.zeros(2+len(powders))
+    zk_list = np.array([powders[i][7] for i in range(len(powders))])
     args = (P0, PV, k50, S, W0, l_k, l_ps, omega_sum, qfi, powders)
-    ys, ts = methods[method](int_bal_rs, y, 0., tmax, tstep, args, stopfunc=lambda t, y: y[1] < l_d)
+    ys, ts, events = methods[method](int_bal_rs, y, 0., tmax, tstep, args, stopfunc=lambda t, y: y[1] < l_d,
+                             eventfunc=lambda t, y:np.all(zk_list <= y[2:]))
+    if events:
+        lk_index = events[0]
+    else:
+        lk_index = 0
+
     if ts[-1] > tmax:
         raise TooMuchTime()
+
     psis = np.zeros((len(powders), ys.shape[1]))
+
     for i, powd in enumerate(powders):
         psis[i, :] = np.array([psi(ys[2+i][k], *powd[7:]) for k in range(ys.shape[1])])
 
@@ -145,7 +176,7 @@ def solve_ib(P0, PV, k50, S, W0, l_k, l_ps, omega_sum, qfi, l_d, powders, method
 
     ys[2:] = psis
 
-    return ts, ys, p_mean, p_sn, p_kn
+    return ts, ys, p_mean, p_sn, p_kn, lk_index
 
 
 
