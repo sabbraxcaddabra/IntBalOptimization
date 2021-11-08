@@ -1,9 +1,8 @@
 import sys
-
+# Моё последнеее сохранение
 from PyQt5 import QtWidgets, Qt, QtCore, QtGui
 from PyQt5.QtCore import QDir
 from PyQt5.QtWidgets import QMessageBox, QFileDialog, QHeaderView
-from InternalBallistics.Analyze.SolveIntBal import solve_ib
 from InternalBallistics.IntBalClasses import ArtSystem, Powder, IntBalParams
 from GUI.Analyze.AnalysisApp import AnalysisApp
 
@@ -46,8 +45,6 @@ class InitApp(QtWidgets.QMainWindow, initGUI.Ui_initWindow):
         self.selCellDel = self.tableInitPowders.currentColumn()+1
         if self.selCellDel == 0:
             self.selCellDel = None
-
-
     # Метод удаляет колонку для пороха
     def delColumnPowder(self):
         if self.selCellDel is not None:
@@ -85,34 +82,34 @@ class InitApp(QtWidgets.QMainWindow, initGUI.Ui_initWindow):
         self.DialogArtSys = ArtSysApp(self)
         self.DialogArtSys.show()
 
-
-
-
     # Метод вызывает окно анализа
     def StartAnalysis(self):
         # Проверяем все исходные данные перед расчётом
         if not self.CheckInit():
             return False
-        artsys = ArtSystem(name='2А42', d=.03, S=0.000735299, q=0.389, W0=0.125E-3, l_d=2.263, l_k=0.12,
-                           l0=0.125E-3 / 0.000735299, Kf=1.136)
-        int_bal_cond = IntBalParams(syst=artsys, P0=50e6, PV=4e6)
-        int_bal_cond.add_powder(
-            Powder(name='6/7', omega=0.07, rho=1.6e3, f_powd=988e3, Ti=2800., Jk=343.8e3, alpha=1.038e-3, teta=0.236,
-                   Zk=1.53, kappa1=0.239, lambd1=2.26, mu1=0., kappa2=0.835, lambd2=-0.943, mu2=0.))
-        int_bal_cond.add_powder(
-            Powder(name='6/7', omega=0.03, rho=1.6e3, f_powd=988e3, Ti=2800., Jk=343.8e3, alpha=1.038e-3, teta=0.236,
-                   Zk=1.53, kappa1=0.239, lambd1=2.26, mu1=0., kappa2=0.835, lambd2=-0.943, mu2=0.))
-        int_bal_cond.add_powder(
-            Powder(name='6/7', omega=0.01, rho=1.6e3, f_powd=988e3, Ti=2800., Jk=343.8e3, alpha=1.038e-3, teta=0.236,
-                   Zk=1.53, kappa1=0.239, lambd1=2.26, mu1=0., kappa2=0.835, lambd2=-0.943, mu2=0.))
-        int_bal_cond.add_powder(
-            Powder(name='6/7', omega=0.01, rho=1.6e3, f_powd=988e3, Ti=2800., Jk=343.8e3, alpha=1.038e-3, teta=0.236,
-                   Zk=1.53, kappa1=0.239, lambd1=2.26, mu1=0., kappa2=0.835, lambd2=-0.943, mu2=0.))
+        # Передаём хар-ки арт. системы
+        nameArt = self.tableInitArtSys.item(0, 0).text()
+        CharArtSys = [float(self.tableInitArtSys.item(i, 0).text()) for i in range(1, 9)]
+
+        artsys = ArtSystem(name=nameArt, d=CharArtSys[0], q=CharArtSys[1], S=CharArtSys[2], W0=CharArtSys[3], l_d=CharArtSys[4], l_k=CharArtSys[5],
+                           l0=CharArtSys[6], Kf=CharArtSys[7])
+        # Передаём параметры заряжания
+        Pforc = float(self.val_PressForc.text())*1e6
+        PIgnit = float(self.val_PressIgnit.text())*1e6
+        int_bal_cond = IntBalParams(syst=artsys, P0=Pforc, PV=PIgnit)
+
+        # Передаём характеристики пороха
+        countCol = self.tableInitPowders.columnCount() #Узнаём кол-во колонок
+
+        for j in range(countCol):
+            NamePowd = self.tableInitPowders.item(0, j).text()
+            CharPowd = [float(self.tableInitPowders.item(i, j).text()) for i in range(1, 15)]
+
+            int_bal_cond.add_powder(
+                Powder(name=NamePowd, omega=CharPowd[0], rho=CharPowd[1], f_powd=CharPowd[2], Ti=CharPowd[3], Jk=CharPowd[4], alpha=CharPowd[5], teta=CharPowd[6],
+                Zk=CharPowd[7], kappa1=CharPowd[8], lambd1=CharPowd[9], mu1=CharPowd[10], kappa2=CharPowd[11], lambd2=CharPowd[12], mu2=CharPowd[13]))
         self.DialogAnalysis = AnalysisApp(int_bal_cond=int_bal_cond)
         self.DialogAnalysis.show()
-
-
-
 
     # Метод производит сохранение файла
     def FileSave(self):
@@ -154,6 +151,7 @@ class InitApp(QtWidgets.QMainWindow, initGUI.Ui_initWindow):
 
     # Метод производит открытия файла сохранения
     def FileOpen(self):
+
         name = "InitSave.txt"
         direct = QDir.currentPath()
         filename = QFileDialog.getOpenFileName(self,"Открыть исходные данные", direct+"/"+name, "TXT (*.txt)")[0]
@@ -161,6 +159,16 @@ class InitApp(QtWidgets.QMainWindow, initGUI.Ui_initWindow):
         try:
 
             with open(filename, 'r', encoding='utf8') as f:
+                # Очищаем все исходные данные перед импортом сохранения
+                self.tableInitArtSys.clearContents()
+
+                self.val_PressIgnit.clear()
+                self.val_PressForc.clear()
+
+                valCol = self.tableInitPowders.columnCount()
+
+                for j in range(valCol, -1, -1):
+                    self.tableInitPowders.removeColumn(j)
 
                 #Считываем и сохраняем давление форсирования
 
@@ -451,9 +459,6 @@ class ArtSysApp(QtWidgets.QMainWindow, artsysGUI.Ui_DialogArtSys):
             errorSelArtSys.setIcon(QMessageBox.Critical)
             errorSelArtSys.setStandardButtons(QMessageBox.Ok)
             errorSelArtSys.exec()
-
-
-
 
 
 

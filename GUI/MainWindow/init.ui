@@ -591,9 +591,6 @@
       <property name="textAlignment">
        <set>AlignCenter</set>
       </property>
-      <property name="flags">
-       <set>ItemIsDragEnabled|ItemIsUserCheckable|ItemIsEnabled</set>
-      </property>
      </item>
      <item row="1" column="0">
       <property name="text">
@@ -602,9 +599,6 @@
       <property name="textAlignment">
        <set>AlignCenter</set>
       </property>
-      <property name="flags">
-       <set>ItemIsDragEnabled|ItemIsUserCheckable|ItemIsEnabled</set>
-      </property>
      </item>
      <item row="2" column="0">
       <property name="text">
@@ -612,9 +606,6 @@
       </property>
       <property name="textAlignment">
        <set>AlignCenter</set>
-      </property>
-      <property name="flags">
-       <set>ItemIsDragEnabled|ItemIsUserCheckable|ItemIsEnabled</set>
       </property>
      </item>
      <item row="3" column="0">
@@ -798,15 +789,8 @@
     <addaction name="act_open"/>
     <addaction name="act_save"/>
    </widget>
-   <widget class="QMenu" name="menu">
-    <property name="title">
-     <string>Помощь</string>
-    </property>
-    <addaction name="action"/>
-   </widget>
    <addaction name="file"/>
    <addaction name="bases"/>
-   <addaction name="menu"/>
   </widget>
   <action name="act_powders">
    <property name="text">

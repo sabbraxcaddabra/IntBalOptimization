@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-# Form implementation generated from reading ui file 'C:\Users\denis\PycharmProjects\BallOptimiz\init.ui'
+# Form implementation generated from reading ui file 'C:\Users\denis\PycharmProjects\GitHubBallOptimiz\GUI\MainWindow\init.ui'
 #
 # Created by: PyQt5 UI code generator 5.15.6
 #
@@ -273,15 +273,12 @@ class Ui_initWindow(object):
         self.tableInitArtSys.setHorizontalHeaderItem(0, item)
         item = QtWidgets.QTableWidgetItem()
         item.setTextAlignment(QtCore.Qt.AlignCenter)
-        item.setFlags(QtCore.Qt.ItemIsDragEnabled|QtCore.Qt.ItemIsUserCheckable|QtCore.Qt.ItemIsEnabled)
         self.tableInitArtSys.setItem(0, 0, item)
         item = QtWidgets.QTableWidgetItem()
         item.setTextAlignment(QtCore.Qt.AlignCenter)
-        item.setFlags(QtCore.Qt.ItemIsDragEnabled|QtCore.Qt.ItemIsUserCheckable|QtCore.Qt.ItemIsEnabled)
         self.tableInitArtSys.setItem(1, 0, item)
         item = QtWidgets.QTableWidgetItem()
         item.setTextAlignment(QtCore.Qt.AlignCenter)
-        item.setFlags(QtCore.Qt.ItemIsDragEnabled|QtCore.Qt.ItemIsUserCheckable|QtCore.Qt.ItemIsEnabled)
         self.tableInitArtSys.setItem(2, 0, item)
         item = QtWidgets.QTableWidgetItem()
         item.setTextAlignment(QtCore.Qt.AlignCenter)
@@ -370,8 +367,6 @@ class Ui_initWindow(object):
         self.bases.setObjectName("bases")
         self.file = QtWidgets.QMenu(self.menubar)
         self.file.setObjectName("file")
-        self.menu = QtWidgets.QMenu(self.menubar)
-        self.menu.setObjectName("menu")
         initWindow.setMenuBar(self.menubar)
         self.act_powders = QtWidgets.QAction(initWindow)
         font = QtGui.QFont()
@@ -407,10 +402,8 @@ class Ui_initWindow(object):
         self.bases.addAction(self.act_artsys)
         self.file.addAction(self.act_open)
         self.file.addAction(self.act_save)
-        self.menu.addAction(self.action)
         self.menubar.addAction(self.file.menuAction())
         self.menubar.addAction(self.bases.menuAction())
-        self.menubar.addAction(self.menu.menuAction())
 
         self.retranslateUi(initWindow)
         QtCore.QMetaObject.connectSlotsByName(initWindow)
@@ -426,7 +419,7 @@ class Ui_initWindow(object):
         item = self.tableInitPowders.verticalHeaderItem(1)
         item.setText(_translate("initWindow", "Масса, кг: "))
         item = self.tableInitPowders.verticalHeaderItem(2)
-        item.setText(_translate("initWindow", "Δ, кг/м³: "))
+        item.setText(_translate("initWindow", "δ, кг/м³: "))
         item = self.tableInitPowders.verticalHeaderItem(3)
         item.setText(_translate("initWindow", "f, Дж/кг: "))
         item = self.tableInitPowders.verticalHeaderItem(4)
@@ -480,7 +473,6 @@ class Ui_initWindow(object):
         self.label_PressForc.setText(_translate("initWindow", "Давление форсирования, МПа: "))
         self.bases.setTitle(_translate("initWindow", "Базы..."))
         self.file.setTitle(_translate("initWindow", "Файл"))
-        self.menu.setTitle(_translate("initWindow", "Помощь"))
         self.act_powders.setText(_translate("initWindow", "Пороха"))
         self.act_artsys.setText(_translate("initWindow", "Арт. системы"))
         self.act_open.setText(_translate("initWindow", "Открыть.."))

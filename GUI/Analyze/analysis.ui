@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <ui version="4.0">
- <class>Dialog</class>
- <widget class="QDialog" name="Dialog">
+ <class>DialogRes</class>
+ <widget class="QDialog" name="DialogRes">
   <property name="geometry">
    <rect>
     <x>0</x>
@@ -23,7 +23,7 @@
    </size>
   </property>
   <property name="windowTitle">
-   <string>Анализ</string>
+   <string>Анализ баллистических параметров</string>
   </property>
   <property name="layoutDirection">
    <enum>Qt::LeftToRight</enum>
@@ -97,13 +97,13 @@
        <rect>
         <x>10</x>
         <y>30</y>
-        <width>901</width>
+        <width>902</width>
         <height>531</height>
        </rect>
       </property>
       <property name="font">
        <font>
-        <pointsize>8</pointsize>
+        <pointsize>9</pointsize>
         <weight>50</weight>
         <bold>false</bold>
        </font>
@@ -114,21 +114,27 @@
       <property name="horizontalScrollBarPolicy">
        <enum>Qt::ScrollBarAsNeeded</enum>
       </property>
+      <property name="showDropIndicator" stdset="0">
+       <bool>true</bool>
+      </property>
+      <property name="showGrid">
+       <bool>true</bool>
+      </property>
       <attribute name="horizontalHeaderDefaultSectionSize">
-       <number>90</number>
+       <number>122</number>
       </attribute>
       <attribute name="horizontalHeaderMinimumSectionSize">
-       <number>90</number>
+       <number>122</number>
       </attribute>
       <attribute name="verticalHeaderDefaultSectionSize">
-       <number>30</number>
+       <number>25</number>
       </attribute>
       <attribute name="verticalHeaderMinimumSectionSize">
-       <number>30</number>
+       <number>25</number>
       </attribute>
       <row>
        <property name="text">
-        <string>0</string>
+        <string>1</string>
        </property>
       </row>
       <column>
@@ -177,7 +183,7 @@
       </column>
       <column>
        <property name="text">
-        <string>Pср.бал., МПа</string>
+        <string>P, МПа</string>
        </property>
        <property name="font">
         <font>
@@ -188,7 +194,7 @@
       </column>
       <column>
        <property name="text">
-        <string>Pсн., МПа</string>
+        <string>Pсн, МПа</string>
        </property>
        <property name="font">
         <font>
@@ -199,7 +205,7 @@
       </column>
       <column>
        <property name="text">
-        <string>Pкн., МПа</string>
+        <string>Pкн, МПа</string>
        </property>
        <property name="font">
         <font>
