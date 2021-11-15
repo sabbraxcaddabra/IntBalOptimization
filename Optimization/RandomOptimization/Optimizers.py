@@ -3,20 +3,14 @@ import numpy as np
 from numpy.random import uniform
 from numpy.linalg import norm
 
+from Optimization.OptimizationErrors import *
+
 # TODO: Добавить методы для удаления ограничений 1-го и 2-го рода по ключу
 # TODO: Проверить качество и правильность реализации метода случайного сканирования
 # TODO: Добавить еще несколько реализацций алгоритмов оптимизации
 # TODO: Написать нормальную документацию для каждого класса
 
-class TooMuchItersOptimizerError(Exception):
-    def __str__(self):
-        return "Не найдено ни одного оптимума. Израсходовано максимальное число итераций\n" \
-               "Попробуйте меньший шаг или большее максимальное число итераций"
 
-class MinStepOptimizerError(Exception):
-    def __str__(self):
-        return "Не найдено ни одного оптимума. Достигнут минимальный шаг\n" \
-               "Попробуйте меньший шаг или большее максимальное число итераций"
 
 class Optimizer(ABC):
     """
@@ -228,38 +222,37 @@ class RandomSearchOptimizer(Optimizer):
         """
         steps_total = 0
         bad_steps_cur = 1
-        last_x = self.x_vec[:]
-        self._adapt(last_x)
-        last_f, last_second_ground_boundary = self.t_func(last_x, self.params)
+        try:
+            last_x = np.ones(len(self.x_vec))
+            self._adapt(last_x*self.x_vec)
+            last_f, last_second_ground_boundary = self.t_func(last_x, self.params)
+        except:
+            raise FirstStepOptimizationError()
 
         while steps_total < N:
             while bad_steps_cur < M:
-                yj = self._get_yj(last_x, t0)
+                yj = self.x_vec * self._get_yj(last_x, t0)
                 self._adapt(yj)
                 if self._check_first_ground_boundary(yj):
                     try:
                         cur_f, cur_solution = self.t_func(yj, self.params)
                         if self._check_second_ground_boundary(cur_solution):
                             if cur_f <= last_f and abs(cur_f - last_f) > min_delta_f:
-                                zj = self._get_zj(last_x, alpha, yj)
+                                zj = self.x_vec * self._get_zj(last_x, alpha, yj/self.x_vec)
                                 self._adapt(zj)
                                 if self._check_first_ground_boundary(zj):
-                                    try:
-                                        cur_f, cur_solution = self.t_func(zj, self.params)
-                                        if self._check_second_ground_boundary(cur_solution):
-                                            if cur_f <= last_f and abs(cur_f - last_f) > min_delta_f:
-                                                last_x, last_f = zj, cur_f
-                                                t0 *= alpha
-                                                steps_total += 1
-                                                if self.out_func:
-                                                    # break
-                                                    self.out_func(zj, cur_f, cur_solution, self.params)
-                                                break
-                                            else:
-                                                bad_steps_cur += 1
+                                    cur_f, cur_solution = self.t_func(zj, self.params)
+                                    if self._check_second_ground_boundary(cur_solution):
+                                        if cur_f <= last_f and abs(cur_f - last_f) > min_delta_f:
+                                            last_x, last_f = zj/self.x_vec, cur_f
+                                            t0 *= alpha
+                                            steps_total += 1
+                                            if self.out_func:
+                                                self.out_func(zj, cur_f, cur_solution, self.params)
+                                            break
                                         else:
                                             bad_steps_cur += 1
-                                    except:
+                                    else:
                                         bad_steps_cur += 1
                                 else:
                                     bad_steps_cur += 1
@@ -273,7 +266,7 @@ class RandomSearchOptimizer(Optimizer):
                     bad_steps_cur += 1
 
             if t0 <= R:
-                if not np.array_equal(last_x, self.x_vec):
+                if not np.array_equal(last_x, np.ones(len(self.x_vec))):
                     print(f"Оптимизация завершилась успешно, шаг минимальный {t0=}")
                     return last_x
                 else:
@@ -281,7 +274,8 @@ class RandomSearchOptimizer(Optimizer):
             else:
                 t0 *= beta
                 bad_steps_cur = 1
-        if not np.array_equal(last_x, self.x_vec[:]):
+
+        if not np.array_equal(last_x, np.ones(len(self.x_vec))):
             print("Оптимизация завершилась успешно, израсходованно максимальное число итераций")
             return last_x
         else:

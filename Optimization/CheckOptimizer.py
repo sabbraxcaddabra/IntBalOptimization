@@ -49,7 +49,7 @@ if __name__ == "__main__":
 
     x_vec = np.array([0.07, 343.8e3, 0.05, 343.8e3])
     weights = [0.1, 0.7, 0.1, 0.7]
-    xlims = [[nom - weight * nom, nom + weight * nom] for nom, weight in zip(x_vec, weights)]
+    xlims = [[-np.inf, np.inf] for nom, weight in zip(x_vec, weights)]
     opt = RandomSearchOptimizer(x_vec,
                                 params=int_bal_cond,
                                 x_lims=xlims)
@@ -65,7 +65,7 @@ if __name__ == "__main__":
     # TODO: Разобраться почему оптимизация по конечному импульсу практически ничего не дает(возможно дело в коэффициентах)
 
     #opt.optimize = benchmark(iters=10, file_to_write='RK4')(opt.optimize)
-    opt.optimize(N=500, M=100, t0=1, R=0.001)
+    print(opt.optimize(N=500, M=100, t0=0.1, R=0.001))
 
     #
     # opt.optimize = benchmark(iters=10, file_to_write='RK4')(opt.optimize)

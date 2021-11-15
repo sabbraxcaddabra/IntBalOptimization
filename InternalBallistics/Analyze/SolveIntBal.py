@@ -118,9 +118,9 @@ def psi(z, zk, kappa1, lambd1, mu1, kappa2, lambd2, mu2):
     elif 1 <= z <= zk:
         z1 = z - 1
         psiS = kappa1 + kappa1*lambd1 + kappa1*mu1
-        return psiS + kappa2*z1*(1 + lambd2*z1 +mu2*z1**2)
+        return psiS + kappa2*z1*(1 + lambd2*z1 + mu2*z1**2)
     else:
-        return 1
+        return 1.
 
 def int_bal_rs(t, y, P0, PV, k50, S, W0, l_k, l_ps, omega_sum, qfi, powders):
     """
@@ -174,7 +174,7 @@ def solve_ib(P0, PV, k50, S, W0, l_k, l_ps, omega_sum, qfi, l_d, powders, method
     for i in range(ys.T.shape[0]):
         p_mean[i], p_sn[i], p_kn[i] = P(ys.T[i], PV, lambda_khi[i], S, W0, qfi, omega_sum, psis.T[i], powders)
 
-    ys[2:] = psis
+    #ys[2:] = psis
 
     return ts, ys, p_mean, p_sn, p_kn, lk_index
 

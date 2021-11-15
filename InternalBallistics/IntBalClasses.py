@@ -40,6 +40,7 @@ class Powder:
 
 
 class IntBalParams:
+
     # Класс начальных условий
     # Система "Орудие-заряд-снаряд"
     def __init__(self, syst, P0, PV):
