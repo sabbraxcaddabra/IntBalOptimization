@@ -1,4 +1,5 @@
 from dataclasses import dataclass
+from collections import namedtuple
 
 
 #__all__ = ["ArtSystem", "Powder", "IntBalParams"]
@@ -40,7 +41,22 @@ class Powder:
 
 
 class IntBalParams:
-
+    Powder_ = namedtuple('Powd', [
+        'omega',
+        'rho',
+        'f_powd',
+        'Ti',
+        'Jk',
+        'alpha',
+        'teta',
+        'Zk',
+        'kappa1',
+        'lambd1',
+        'mu1',
+        'kappa2',
+        'lambd2',
+        'mu2'
+    ])
     # Класс начальных условий
     # Система "Орудие-заряд-снаряд"
     def __init__(self, syst, P0, PV):
@@ -68,7 +84,7 @@ class IntBalParams:
         ]
         powders = []
         for powder in self.charge:
-            tmp = (
+            tmp = self.Powder_(
                 powder.omega,
                 powder.rho,
                 powder.f_powd,

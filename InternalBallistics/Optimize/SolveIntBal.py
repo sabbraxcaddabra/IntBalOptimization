@@ -7,12 +7,8 @@ def P(y, Pv, lambda_khi, S, W0, qfi, omega_sum, psis, powders):
     thet = theta(psis, powders)
     fs = 0.
     for i, powder in enumerate(powders):
-        f = powder[2]
-        om = powder[0]
-        delta = powder[1]
-        alpha = powder[5]
-        fs += f * om * psis[i]
-        W0 -= om * ((1. - psis[i]) / delta + psis[i] * alpha)
+        fs += powder.f_powd * powder.omega * psis[i]
+        W0 -= powder.omega * ((1. - psis[i]) / powder.rho + psis[i] * powder.alpha)
     fs -= thet * y[0] ** 2 * (qfi / 2 + lambda_khi * omega_sum / 6.)
     W0 += y[1] * S
     if W0 < 0.:
@@ -28,8 +24,8 @@ def theta(psis, powders):
     sum1 = 0
     sum2 = 0
     for i, powder in enumerate(powders):
-        sum1 += powder[2] * powder[0] * psis[i] / powder[3]
-        sum2 += powder[2] * powder[0] * psis[i] / (powder[3] * powder[6])
+        sum1 += powder.f_powd * powder.omega * psis[i] / powder.Ti
+        sum2 += powder.f_powd * powder.omega * psis[i] / (powder.Ti * powder.teta)
     if sum2 != 0:
         return sum1 / sum2
     else:
@@ -59,16 +55,16 @@ def int_bal_rs(y, P0, PV, k50, S, W0, l_k, l_ps, omega_sum, qfi, powders):
 
     p_mean, p_sn, p_kn = P(y, PV, lambda_khi, S, W0, qfi, omega_sum, psis, powders)
     if y[0] == 0. and p_mean < P0:
-        f[0] = 0
-        f[1] = 0
+        f[0] = 0.
+        f[1] = 0.
     else:
-        f[0] = (p_sn*S)/(qfi)
+        f[0] = p_sn*S/qfi
         f[1] = y[0]
     for i, powder in enumerate(powders):
         if p_mean <= 50e6:
-            f[2+i] = ((k50*p_mean**0.75)/powder[4]) * (y[2+i] < powder[7])
+            f[2+i] = ((k50*p_mean**0.75)/powder.Jk) * (y[2+i] < powder.Zk)
         else:
-            f[2+i] = (p_mean/powder[4]) * (y[2+i] < powder[7])
+            f[2+i] = (p_mean/powder.Jk) * (y[2+i] < powder.Zk)
     return f, p_mean, p_sn, p_kn
 
 @njit
