@@ -1,7 +1,5 @@
 import numpy as np
-from numba import njit
 from collections import deque
-import matplotlib.pyplot as plt
 from InternalBallistics.ErrorClasses import *
 
 
@@ -50,8 +48,6 @@ def adams_bashford5(f, y0, t0, t_end, tau, args, stopfunc=None, eventfunc=None):
 
     return np.array(ys).T, np.array(ts), event_indices
 
-
-
 def runge_kutta4(f, y0, t0, t_end, tau, args, stopfunc=None, eventfunc=None):
     def rungeStep(f, t, y, tau, args):
         k1 = tau * f(t, y, *args)
@@ -85,17 +81,13 @@ def P(y, Pv, lambda_khi, S, W0, qfi, omega_sum, psis, powders):
     thet = theta(psis, powders)
     fs = 0.
     for i, powder in enumerate(powders):
-        f = powder[2]
-        om = powder[0]
-        delta = powder[1]
-        alpha = powder[5]
-        fs += f*om*psis[i]
-        W0 -= om*((1.-psis[i])/delta + psis[i]*alpha)
-    fs -= thet * y[0]**2 * (qfi/2 + lambda_khi * omega_sum / 6.)
+        fs += powder.f_powd * powder.omega * psis[i]
+        W0 -= powder.omega * ((1. - psis[i]) / powder.rho + psis[i] * powder.alpha)
+    fs -= thet * y[0] ** 2 * (qfi / 2 + lambda_khi * omega_sum / 6.)
     W0 += y[1] * S
     if W0 < 0.:
         raise TooMuchPowderError()
-    p_mean = Pv + fs/W0
+    p_mean = Pv + fs / W0
     p_sn = (p_mean/(1 + (1/3) * (lambda_khi*omega_sum)/qfi))*(y[0] > 0.) + (y[0] == 0.)*p_mean
     p_kn = (p_sn*(1 + 0.5*lambda_khi*omega_sum/qfi))*(y[0] > 0.) + (y[0] == 0.)*p_mean
 
@@ -105,8 +97,8 @@ def theta(psis, powders):
     sum1 = 0
     sum2 = 0
     for i, powder in enumerate(powders):
-        sum1 += powder[2] * powder[0] * psis[i] / powder[3]
-        sum2 += powder[2] * powder[0] * psis[i] / (powder[3] * powder[6])
+        sum1 += powder.f_powd * powder.omega * psis[i] / powder.Ti
+        sum2 += powder.f_powd * powder.omega * psis[i] / (powder.Ti * powder.teta)
     if sum2 != 0:
         return sum1 / sum2
     else:
@@ -120,7 +112,7 @@ def psi(z, zk, kappa1, lambd1, mu1, kappa2, lambd2, mu2):
         psiS = kappa1 + kappa1*lambd1 + kappa1*mu1
         return psiS + kappa2*z1*(1 + lambd2*z1 +mu2*z1**2)
     else:
-        return 1
+        return 1.
 
 def int_bal_rs(t, y, P0, PV, k50, S, W0, l_k, l_ps, omega_sum, qfi, powders):
     """
@@ -134,16 +126,16 @@ def int_bal_rs(t, y, P0, PV, k50, S, W0, l_k, l_ps, omega_sum, qfi, powders):
 
     p_mean, p_sn, p_kn = P(y, PV, lambda_khi, S, W0, qfi, omega_sum, psis, powders)
     if y[0] == 0. and p_mean < P0:
-        f[0] = 0
-        f[1] = 0
+        f[0] = 0.
+        f[1] = 0.
     else:
-        f[0] = (p_sn*S)/(qfi)
+        f[0] = p_sn*S/qfi
         f[1] = y[0]
     for i, powder in enumerate(powders):
         if p_mean <= 50e6:
-            f[2+i] = ((k50*p_mean**0.75)/powder[4]) * (y[2+i] < powder[7])
+            f[2+i] = ((k50*p_mean**0.75)/powder.Jk) * (y[2+i] < powder.Zk)
         else:
-            f[2+i] = (p_mean/powder[4]) * (y[2+i] < powder[7])
+            f[2+i] = (p_mean/powder.Jk) * (y[2+i] < powder.Zk)
     return f
 
 def solve_ib(P0, PV, k50, S, W0, l_k, l_ps, omega_sum, qfi, l_d, powders, method = 'RK4', tmax = 1. , tstep = 1e-5):
@@ -174,7 +166,7 @@ def solve_ib(P0, PV, k50, S, W0, l_k, l_ps, omega_sum, qfi, l_d, powders, method
     for i in range(ys.T.shape[0]):
         p_mean[i], p_sn[i], p_kn[i] = P(ys.T[i], PV, lambda_khi[i], S, W0, qfi, omega_sum, psis.T[i], powders)
 
-    ys[2:] = psis
+    #ys[2:] = psis
 
     return ts, ys, p_mean, p_sn, p_kn, lk_index
 
