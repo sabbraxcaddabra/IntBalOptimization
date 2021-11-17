@@ -30,7 +30,7 @@ def get_powder_combination(Jk_dop_list, max_tol=15.):
             powders_list.append(powder)
 
     if len(powders_list) < len(Jk_dop_list):
-        raise NoOneCombo(max_tol)
+        raise NoOneCombo()
     else:
         comb_powders = tuple(combinations(powders_list, len(Jk_dop_list)))
         return comb_powders
