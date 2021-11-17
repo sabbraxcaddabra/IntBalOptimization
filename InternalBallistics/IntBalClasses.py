@@ -18,6 +18,9 @@ class ArtSystem:
     l0: float  # Приведенная длина зарядной каморы
     Kf: float  # Коэффициент слухоцкого
 
+    def __str__(self):
+        return f"Арт.система {self.name}, калибр: {self.d*1e3} мм"
+
 
 @dataclass
 class Powder:
@@ -38,6 +41,16 @@ class Powder:
     kappa2: float  # 1-я, 2-я и 3-я характеристики формы пороховых элементов после распада
     lambd2: float
     mu2: float
+
+    def __str__(self):
+        return f"Марка пороха: {self.name}, масса: {self.omega}, конечный импульс: {self.Jk*1e-3} кПа*с"
+
+    @classmethod
+    def from_data_string(cls, string: str):
+        string_list = string.strip().split(' ')
+        data_list = list(map(float, string_list[1:]))
+        return cls(string_list[0], 0.0, *data_list)
+
 
 
 class IntBalParams:
