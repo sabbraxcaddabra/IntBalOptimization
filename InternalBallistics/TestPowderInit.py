@@ -1,4 +1,5 @@
 from InternalBallistics.IntBalClasses import Powder
+from InternalBallistics.ErrorClasses import NoOneCombo
 from itertools import combinations
 
 def check_Jk(powder, Jk_dop, max_tol):
@@ -7,6 +8,13 @@ def check_Jk(powder, Jk_dop, max_tol):
         return True
 
 def get_powder_combination(Jk_dop_list, max_tol=15.):
+    """
+    Функция читающая базу порохов и по допустимым конечным импульсам(полученным в результате решения обобщенной задачи)
+    возвращающая кортеж всех возможных комбинаций порохов
+    :param Jk_dop_list: Итерируемый объект с допустимыми конечными импульсами(список/кортеж и тд.)
+    :param max_tol: Максимальная ошибка по конечному импульсу
+    :return: Кортеж всех возможных комбинаций порохов
+    """
     with open('PowdersBase.txt', encoding='utf8') as base_file:
         non_powder = (
             'Фл-тор',
@@ -21,12 +29,15 @@ def get_powder_combination(Jk_dop_list, max_tol=15.):
                 continue
             powders_list.append(powder)
 
-    comb_powders = tuple(combinations(powders_list, len(Jk_dop_list)))
-    return comb_powders
+    if len(powders_list) < len(Jk_dop_list):
+        raise NoOneCombo(max_tol)
+    else:
+        comb_powders = tuple(combinations(powders_list, len(Jk_dop_list)))
+        return comb_powders
 
 
 if __name__ == "__main__":
-    Jk_dop_list = [343.8e3, 680e3]
+    Jk_dop_list = [343.8e3, 681e3]
 
     comb = get_powder_combination(Jk_dop_list)
 
