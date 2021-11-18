@@ -126,5 +126,7 @@ class IntBalOptimizer(RandomScanOptimizer, RandomSearchOptimizer):
                 'x_vec': xx,
                 'target_func': ff
             }
+            print(pair_dict)
             optimized_pairs.append(pair_dict)
-        print(max(optimized_pairs, key=lambda pair_dict: pair_dict['target_func']))
+
+        print("Лучший вариант\n", max(optimized_pairs, key=lambda pair_dict: pair_dict['target_func']))

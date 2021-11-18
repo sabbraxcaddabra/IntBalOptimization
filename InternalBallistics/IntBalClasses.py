@@ -45,6 +45,9 @@ class Powder:
     def __str__(self):
         return f"Марка пороха: {self.name}, масса: {self.omega}, конечный импульс: {self.Jk*1e-3} кПа*с"
 
+    def __repr__(self):
+        return f"Марка пороха: {self.name},  масса: {self.omega:.4g}"
+
     @classmethod
     def from_data_string(cls, string: str):
         string_list = string.strip().split(' ')

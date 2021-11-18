@@ -273,7 +273,7 @@ class RandomSearchOptimizer(Optimizer):
 
             if t0 <= R:
                 if not np.array_equal(last_x, np.ones(len(self.x_vec))):
-                    print(f"Оптимизация завершилась успешно, шаг минимальный {t0=}")
+                    #print(f"Оптимизация завершилась успешно, шаг минимальный {t0=}")
                     return last_x * self.x_vec, last_f
                 else:
                     raise MinStepOptimizerError()
@@ -282,7 +282,7 @@ class RandomSearchOptimizer(Optimizer):
                 bad_steps_cur = 1
 
         if not np.array_equal(last_x, np.ones(len(self.x_vec))):
-            print("Оптимизация завершилась успешно, израсходованно максимальное число итераций")
+            #print("Оптимизация завершилась успешно, израсходованно максимальное число итераций")
             return last_x * self.x_vec, last_f
         else:
             raise TooMuchItersOptimizerError()
