@@ -5,6 +5,8 @@ from numpy.linalg import norm
 
 from Optimization.OptimizationErrors import *
 
+__all__ = ['RandomScanOptimizer', 'RandomSearchOptimizer']
+
 # TODO: Добавить методы для удаления ограничений 1-го и 2-го рода по ключу
 # TODO: Проверить качество и правильность реализации метода случайного сканирования
 # TODO: Добавить еще несколько реализацций алгоритмов оптимизации
