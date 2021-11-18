@@ -23,7 +23,7 @@ class Optimizer(ABC):
     def __init__(self,
                  x_vec,
                  params=None,
-                 adapters=[],
+                 adapters=dict(),
                  first_ground_boundary=dict(),
                  second_ground_boundary=dict(),
                  x_lims=None,
@@ -38,13 +38,13 @@ class Optimizer(ABC):
         self.t_func = t_func
         self.out_func = out_func
 
-    def add_new_adapter(self, adapt_func) -> None:
+    def add_new_adapter(self, key, adapt_func) -> None:
         """
         Метод для добавления в задачу нового адаптера
         :param adapt_func: Функция, лямбда-функция, классовый метод и т.д(callable объект)
         :return: None
         """
-        self.adapters.append(adapt_func)
+        self.adapters[key] = adapt_func
 
     def _adapt(self, x_vec_new: list) -> None:
         """
@@ -54,8 +54,12 @@ class Optimizer(ABC):
         :return: None
         """
         if self.adapters:
-            for func in self.adapters:
+            for func in self.adapters.values():
                 func(x_vec_new, self.params)
+
+    def remove_adapter(self, key):
+
+        del self.adapters[key]
 
     def add_first_ground_boundary(self, name: str, func_dict: dict) -> None:
         """
@@ -182,7 +186,7 @@ class RandomScanOptimizer(Optimizer):
             if bad_steps_cur == N and cur_step_modifier < max_modifier:
                 bad_steps_cur = 0
                 cur_step_modifier += 1
-        return last_x
+        return last_x, last_f
 
 class RandomSearchOptimizer(Optimizer):
 
@@ -270,7 +274,7 @@ class RandomSearchOptimizer(Optimizer):
             if t0 <= R:
                 if not np.array_equal(last_x, np.ones(len(self.x_vec))):
                     print(f"Оптимизация завершилась успешно, шаг минимальный {t0=}")
-                    return last_x
+                    return last_x * self.x_vec, last_f
                 else:
                     raise MinStepOptimizerError()
             else:
@@ -279,6 +283,6 @@ class RandomSearchOptimizer(Optimizer):
 
         if not np.array_equal(last_x, np.ones(len(self.x_vec))):
             print("Оптимизация завершилась успешно, израсходованно максимальное число итераций")
-            return last_x
+            return last_x * self.x_vec, last_f
         else:
             raise TooMuchItersOptimizerError()

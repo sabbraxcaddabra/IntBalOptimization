@@ -2,7 +2,7 @@ from dataclasses import dataclass
 from collections import namedtuple
 
 
-#__all__ = ["ArtSystem", "Powder", "IntBalParams"]
+__all__ = ["ArtSystem", "Powder", "IntBalParams"]
 
 
 @dataclass

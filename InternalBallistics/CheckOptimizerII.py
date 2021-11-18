@@ -37,14 +37,5 @@ if __name__ == "__main__":
                                 x_lims=xlims, Pmax=500e6)
 
     opt.set_target_func(max_speed_t_func)
-    opt.set_out_func(out_bal_func)
-
-    # TODO: Разобраться почему оптимизация по конечному импульсу практически ничего не дает(возможно дело в коэффициентах)
-
-    #opt.optimize = benchmark(iters=10, file_to_write='RK4')(opt.optimize)
-    print(opt.optimize(N=500, M=100, t0=0.1, R=0.001))
-
-    #
-    # opt.optimize = benchmark(iters=10, file_to_write='RK4')(opt.optimize)
-    # opt.set_target_func(max_speed_t_func)
-    # opt.optimize(N=500, M=100, t0=1, R=0.001)
+    opt.optimize_with_Jk()
+    opt.get_optimized_powders_mass()
