@@ -2,8 +2,13 @@ from Optimization.RandomOptimization.Optimizers import *
 from InternalBallistics.IntBalClasses import *
 from InternalBallistics.ErrorClasses import NoOneCombo
 from itertools import combinations
+from multiprocessing import Pool
 import numpy as np
+from benchmark import benchmark
 
+
+def check_pmax(sol, params, pmax):
+    return sol[0] < pmax
 def adapt_proj_mass(x, params):
     params.syst.q = x[0]
 
@@ -52,7 +57,7 @@ class IntBalOptimizer(RandomScanOptimizer, RandomSearchOptimizer):
 
     def _check_p_max(self):
 
-        p_max_dict_func = {'func': lambda sol, params, lim: sol[0] < lim, 'lim': self.Pmax}
+        p_max_dict_func = {'func': check_pmax, 'lim': self.Pmax}
         return p_max_dict_func
 
     def optimize_with_Jk(self, method='random_search', **kwargs):
@@ -106,18 +111,23 @@ class IntBalOptimizer(RandomScanOptimizer, RandomSearchOptimizer):
 
         return xx, ff
 
+    @benchmark(iters=10, file_to_write='without_parallize.txt')
     def get_optimized_powders_mass(self):
 
         self._adapt(self.optimized_xvec)
-        self.remove_adapter('Jk')
 
-        weights = [0.1, 0.1]
-        self.x_lims = [[0., np.inf] for nom, weight in zip(self.x_vec, weights)]
+        if "Jk" in self.adapters.keys():
+            self.remove_adapter('Jk')
+
+        self.x_lims = [[0., np.inf] for _ in range(len(self.params.charge))]
 
         Jk_dop_list = [powd.Jk for powd in self.params.charge]
 
         combos = self.get_powder_combination(Jk_dop_list)
         optimized_pairs = []
+
+        # with Pool(3) as p:
+        #     res = p.map(self.optimize_one_charge, combos)
 
         for combo in combos:
             xx, ff = self.optimize_one_charge(combo)
@@ -126,7 +136,7 @@ class IntBalOptimizer(RandomScanOptimizer, RandomSearchOptimizer):
                 'x_vec': xx,
                 'target_func': ff
             }
-            print(pair_dict)
+            #print(pair_dict)
             optimized_pairs.append(pair_dict)
 
-        print("Лучший вариант\n", max(optimized_pairs, key=lambda pair_dict: pair_dict['target_func']))
+        #print("Лучший вариант\n", max(optimized_pairs, key=lambda pair_dict: pair_dict['target_func']))
