@@ -43,10 +43,10 @@ class Powder:
     mu2: float
 
     def __str__(self):
-        return f"Марка пороха: {self.name}, масса: {self.omega}, конечный импульс: {self.Jk*1e-3} кПа*с"
+        return f"Марка пороха: {self.name}, масса: {self.omega:.4g}, конечный импульс: {self.Jk*1e-3} кПа*с"
 
     def __repr__(self):
-        return f"Марка пороха: {self.name},  масса: {self.omega:.4g}"
+        return f"Марка пороха: {self.name}, масса: {self.omega:.4g}, конечный импульс: {self.Jk*1e-3} кПа*с"
 
     @classmethod
     def from_data_string(cls, string: str):

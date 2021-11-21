@@ -5,6 +5,7 @@ from itertools import combinations
 from multiprocessing import Pool
 import numpy as np
 from benchmark import benchmark
+from copy import deepcopy
 
 
 def check_pmax(sol, params, pmax):
@@ -98,7 +99,7 @@ class IntBalOptimizer(RandomScanOptimizer, RandomSearchOptimizer):
             comb_powders = tuple(map(list, combinations(powders_list, len(Jk_dop_list))))
             return comb_powders
 
-    def optimize_one_charge(self, charge, method='random_search', **kwargs):
+    def optimize_one_charge(self, charge, method, **kwargs):
 
         for powd in charge:
             powd.omega = 0.01
@@ -107,12 +108,19 @@ class IntBalOptimizer(RandomScanOptimizer, RandomSearchOptimizer):
         self.x_vec = np.array([0.01 for _ in range(len(charge))])
         xx, ff = self.methods[method](self, **kwargs)
 
-        ff *= -1
+        self._adapt(xx)
 
-        return xx, ff
+        info_dict = {
+            'combo': deepcopy(self.params.charge),
+            'x_vec': xx,
+            'target_func': ff
+        }
 
-    @benchmark(iters=10, file_to_write='without_parallize.txt')
-    def get_optimized_powders_mass(self):
+
+        return info_dict
+
+    #@benchmark(iters=10, file_to_write='without_parallize.txt')
+    def get_optimized_powders_mass(self, method='random_search', **kwargs):
 
         self._adapt(self.optimized_xvec)
 
@@ -124,19 +132,20 @@ class IntBalOptimizer(RandomScanOptimizer, RandomSearchOptimizer):
         Jk_dop_list = [powd.Jk for powd in self.params.charge]
 
         combos = self.get_powder_combination(Jk_dop_list)
-        optimized_pairs = []
+        optimized_combos = []
 
         # with Pool(3) as p:
         #     res = p.map(self.optimize_one_charge, combos)
 
         for combo in combos:
-            xx, ff = self.optimize_one_charge(combo)
-            pair_dict = {
-                'combo': combo,
-                'x_vec': xx,
-                'target_func': ff
-            }
-            #print(pair_dict)
-            optimized_pairs.append(pair_dict)
+            info_dict = self.optimize_one_charge(combo, method, **kwargs)
 
-        #print("Лучший вариант\n", max(optimized_pairs, key=lambda pair_dict: pair_dict['target_func']))
+            optimized_combos.append(info_dict)
+
+        optimized_combos.sort(key=lambda info_dict: info_dict['target_func'], reverse=True)
+
+        for combo in optimized_combos:
+            print(combo)
+
+        print('*'*40)
+        print("Лучший вариант\n", min(optimized_combos, key=lambda info_dict: info_dict['target_func']))
