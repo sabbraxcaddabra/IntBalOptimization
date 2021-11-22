@@ -3,9 +3,9 @@ from numba import njit
 from InternalBallistics.ErrorClasses import *
 
 @njit
-def P(y, Pv, lambda_khi, S, W0, qfi, omega_sum, psis, powders):
-    thet = theta(psis, powders)
-    fs = 0.
+def P(y, igniter, lambda_khi, S, W0, qfi, omega_sum, psis, powders):
+    thet = theta(psis, igniter, powders)
+    fs = igniter.fs
     for i, powder in enumerate(powders):
         fs += powder.f_powd * powder.omega * psis[i]
         W0 -= powder.omega * ((1. - psis[i]) / powder.rho + psis[i] * powder.alpha)
@@ -13,16 +13,16 @@ def P(y, Pv, lambda_khi, S, W0, qfi, omega_sum, psis, powders):
     W0 += y[1] * S
     if W0 < 0.:
         raise TooMuchPowderError()
-    p_mean = Pv + fs / W0
+    p_mean = 1e5 + fs / W0
     p_sn = (p_mean/(1 + (1/3) * (lambda_khi*omega_sum)/qfi))*(y[0] > 0.) + (y[0] == 0.)*p_mean
     p_kn = (p_sn*(1 + 0.5*lambda_khi*omega_sum/qfi))*(y[0] > 0.) + (y[0] == 0.)*p_mean
 
     return p_mean, p_sn, p_kn
 
 @njit
-def theta(psis, powders):
-    sum1 = 0
-    sum2 = 0
+def theta(psis, igniter, powders):
+    sum1 = igniter.sum1
+    sum2 = igniter.sum2
     for i, powder in enumerate(powders):
         sum1 += powder.f_powd * powder.omega * psis[i] / powder.Ti
         sum2 += powder.f_powd * powder.omega * psis[i] / (powder.Ti * powder.teta)
@@ -43,7 +43,7 @@ def psi(z, zk, kappa1, lambd1, mu1, kappa2, lambd2, mu2):
         return 1
 
 @njit
-def int_bal_rs(y, P0, PV, k50, S, W0, l_k, l_ps, omega_sum, qfi, powders):
+def int_bal_rs(y, P0, igniter, k50, S, W0, l_k, l_ps, omega_sum, qfi, powders):
     """
     Функция правых частей системы уравнений внутреней баллистики при аргументе t
     """
@@ -53,7 +53,7 @@ def int_bal_rs(y, P0, PV, k50, S, W0, l_k, l_ps, omega_sum, qfi, powders):
         psis[i] = psi(y[2 + i], *powder[7:])
     lambda_khi = (y[1] + l_k)/(y[1] + l_ps)
 
-    p_mean, p_sn, p_kn = P(y, PV, lambda_khi, S, W0, qfi, omega_sum, psis, powders)
+    p_mean, p_sn, p_kn = P(y, igniter, lambda_khi, S, W0, qfi, omega_sum, psis, powders)
     if y[0] == 0. and p_mean < P0:
         f[0] = 0.
         f[1] = 0.
@@ -68,11 +68,11 @@ def int_bal_rs(y, P0, PV, k50, S, W0, l_k, l_ps, omega_sum, qfi, powders):
     return f, p_mean, p_sn, p_kn
 
 @njit
-def solve_ib(P0, PV, k50, S, W0, l_k, l_ps, omega_sum, qfi, l_d, powders, tmax = 1. , tstep = 1e-5):
+def solve_ib(P0, igniter, k50, S, W0, l_k, l_ps, omega_sum, qfi, l_d, powders, tmax = 1., tstep = 1e-5):
     """
 
     :param P0:
-    :param PV:
+    :param igniter:
     :param k50:
     :param S:
     :param W0:
@@ -90,14 +90,14 @@ def solve_ib(P0, PV, k50, S, W0, l_k, l_ps, omega_sum, qfi, l_d, powders, tmax =
     zk_list = np.array([powders[i][7] for i in range(len(powders))])
     lk = 0. # Координата по стволу, соответсвующая полному сгоранию порохового заряда
     t0 = 0.
-    p_mean_max = PV
-    p_sn_max = PV
-    p_kn_max = PV
+    p_mean_max = 1e5
+    p_sn_max = 1e5
+    p_kn_max = 1e5
     while y[1] <= l_d:
-        k1, p_mean1, p_sn1, p_kn1 = int_bal_rs(y, P0, PV, k50, S, W0, l_k, l_ps, omega_sum, qfi, powders)
-        k2, p_mean2, p_sn2, p_kn2 = int_bal_rs(y+tstep*k1/2, P0, PV, k50, S, W0, l_k, l_ps, omega_sum, qfi, powders)
-        k3, p_mean3, p_sn3, p_kn3 = int_bal_rs(y+tstep*k2/2, P0, PV, k50, S, W0, l_k, l_ps, omega_sum, qfi, powders)
-        k4, p_mean4, p_sn4, p_kn4 = int_bal_rs(y+tstep*k3, P0, PV, k50, S, W0, l_k, l_ps, omega_sum, qfi, powders)
+        k1, p_mean1, p_sn1, p_kn1 = int_bal_rs(y, P0, igniter, k50, S, W0, l_k, l_ps, omega_sum, qfi, powders)
+        k2, p_mean2, p_sn2, p_kn2 = int_bal_rs(y + tstep * k1 / 2, P0, igniter, k50, S, W0, l_k, l_ps, omega_sum, qfi, powders)
+        k3, p_mean3, p_sn3, p_kn3 = int_bal_rs(y + tstep * k2 / 2, P0, igniter, k50, S, W0, l_k, l_ps, omega_sum, qfi, powders)
+        k4, p_mean4, p_sn4, p_kn4 = int_bal_rs(y + tstep * k3, P0, igniter, k50, S, W0, l_k, l_ps, omega_sum, qfi, powders)
         y += tstep*(k1 + 2*k2 + 2*k3 + k4)/6
         t0 += tstep
         p_mean_max = max(p_mean1, p_mean2, p_mean3, p_mean4, p_mean_max)

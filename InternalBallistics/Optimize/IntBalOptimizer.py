@@ -139,7 +139,6 @@ class IntBalOptimizer(RandomScanOptimizer, RandomSearchOptimizer):
 
         for combo in combos:
             info_dict = self.optimize_one_charge(combo, method, **kwargs)
-
             optimized_combos.append(info_dict)
 
         optimized_combos.sort(key=lambda info_dict: info_dict['target_func'], reverse=True)

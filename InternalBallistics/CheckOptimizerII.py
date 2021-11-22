@@ -23,11 +23,11 @@ if __name__ == "__main__":
 
     int_bal_cond.add_powder(
         Powder(name='6/7', omega=0.07, rho=1.6e3, f_powd=988e3, Ti=2800., Jk=343.8e3, alpha=1.038e-3, teta=0.236,
-               Zk=1.53, kappa1=0.239, lambd1=2.26, mu1=0., kappa2=0.835, lambd2=-0.943, mu2=0.))
+               Zk=1.53, kappa1=0.239, lambd1=2.26, mu1=0., kappa2=0.835, lambd2=-0.943, mu2=0., gamma_f=3e-4, gamma_Jk=0.0016))
 
-    # int_bal_cond.add_powder(
-    #     Powder(name='6/7', omega=0.05, rho=1.6e3, f_powd=988e3, Ti=2800., Jk=343.8e3, alpha=1.038e-3, teta=0.236,
-    #            Zk=1.53, kappa1=0.239, lambd1=2.26, mu1=0., kappa2=0.835, lambd2=-0.943, mu2=0.))
+    int_bal_cond.add_powder(
+        Powder(name='6/7', omega=0.05, rho=1.6e3, f_powd=988e3, Ti=2800., Jk=343.8e3, alpha=1.038e-3, teta=0.236,
+               Zk=1.53, kappa1=0.239, lambd1=2.26, mu1=0., kappa2=0.835, lambd2=-0.943, mu2=0., gamma_f=3e-4, gamma_Jk=0.0016))
 
     x_vec = np.array([0.07, 343.8e3, 0.05, 343.8e3])
     weights = [0.1, 0.7, 0.1, 0.7]

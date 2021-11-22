@@ -41,6 +41,8 @@ class Powder:
     kappa2: float  # 1-я, 2-я и 3-я характеристики формы пороховых элементов после распада
     lambd2: float
     mu2: float
+    gamma_f: float # Температурная поправка на силу пороха
+    gamma_Jk: float # Температурная поправка на конечный импульс
 
     def __str__(self):
         return f"Марка пороха: {self.name}, масса: {self.omega:.4g}, конечный импульс: {self.Jk*1e-3} кПа*с"
@@ -57,6 +59,15 @@ class Powder:
 
 
 class IntBalParams:
+    igniter_f = 240e3
+    igniter_teta = 0.22
+    igniter_Ti = 2427.
+
+    Igniter = namedtuple('Igniter', [
+        'fs',
+        'sum1',
+        'sum2'
+    ])
     Powder_ = namedtuple('Powd', [
         'omega',
         'rho',
@@ -75,20 +86,34 @@ class IntBalParams:
     ])
     # Класс начальных условий
     # Система "Орудие-заряд-снаряд"
-    def __init__(self, syst, P0, PV):
+    def __init__(self, syst, P0, T0=15., PV=None, igniter_mass=None):
         self.syst = syst  # Арт.система для задачи
         self.charge = []  # Метательный заряд
+        self.T0 = T0 # Температура метательного заряда
         self.P0 = P0  # Давление форсирования
-        self.PV = PV # Давление воспламенителя
+        if igniter_mass:
+            self.igniter_mass = igniter_mass # Масса воспламенителя
+        else:
+            self.PV = PV-1e5 # Давление воспламенителя
 
     def add_powder(self, powder: Powder) -> None:
         self.charge.append(powder)
 
     def create_params_tuple(self) -> tuple:
+
+        if not hasattr(self, 'igniter_mass'):
+            self.igniter_mass = self.PV * (self.syst.W0 - sum(powd.omega/powd.rho for powd in self.charge))/self.igniter_f
+
+        fs = self.igniter_mass*self.igniter_f
+        sum1 = fs/self.igniter_Ti
+        sum2 = sum1/self.igniter_teta
+
+        igniter = self.Igniter(fs, sum1, sum2)
+
         # Метод для создания исходных данных
         params = [
             self.P0,
-            self.PV,
+            igniter,
             50e6**0.25,
             self.syst.S,
             self.syst.W0,
@@ -103,9 +128,9 @@ class IntBalParams:
             tmp = self.Powder_(
                 powder.omega,
                 powder.rho,
-                powder.f_powd,
+                powder.f_powd * (1. + powder.gamma_f * (self.T0 - 15.)),
                 powder.Ti,
-                powder.Jk,
+                powder.Jk * (1. + powder.gamma_Jk * (self.T0 - 15.)),
                 powder.alpha,
                 powder.teta,
                 powder.Zk,
@@ -114,7 +139,7 @@ class IntBalParams:
                 powder.mu1,
                 powder.kappa2,
                 powder.lambd2,
-                powder.mu2,
+                powder.mu2
             )
             powders.append(tmp)
         params.append(tuple(powders))

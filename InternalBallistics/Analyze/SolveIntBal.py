@@ -77,9 +77,9 @@ def runge_kutta4(f, y0, t0, t_end, tau, args, stopfunc=None, eventfunc=None):
 
     return np.array(ys).T, np.array(ts), event_indices
 
-def P(y, Pv, lambda_khi, S, W0, qfi, omega_sum, psis, powders):
-    thet = theta(psis, powders)
-    fs = 0.
+def P(y, igniter, lambda_khi, S, W0, qfi, omega_sum, psis, powders):
+    thet = theta(psis, igniter, powders)
+    fs = igniter.fs
     for i, powder in enumerate(powders):
         fs += powder.f_powd * powder.omega * psis[i]
         W0 -= powder.omega * ((1. - psis[i]) / powder.rho + psis[i] * powder.alpha)
@@ -87,15 +87,15 @@ def P(y, Pv, lambda_khi, S, W0, qfi, omega_sum, psis, powders):
     W0 += y[1] * S
     if W0 < 0.:
         raise TooMuchPowderError()
-    p_mean = Pv + fs / W0
+    p_mean = 1e5 + fs / W0
     p_sn = (p_mean/(1 + (1/3) * (lambda_khi*omega_sum)/qfi))*(y[0] > 0.) + (y[0] == 0.)*p_mean
     p_kn = (p_sn*(1 + 0.5*lambda_khi*omega_sum/qfi))*(y[0] > 0.) + (y[0] == 0.)*p_mean
 
     return p_mean, p_sn, p_kn
 
-def theta(psis, powders):
-    sum1 = 0
-    sum2 = 0
+def theta(psis, igniter, powders):
+    sum1 = igniter.sum1
+    sum2 = igniter.sum2
     for i, powder in enumerate(powders):
         sum1 += powder.f_powd * powder.omega * psis[i] / powder.Ti
         sum2 += powder.f_powd * powder.omega * psis[i] / (powder.Ti * powder.teta)
@@ -114,7 +114,7 @@ def psi(z, zk, kappa1, lambd1, mu1, kappa2, lambd2, mu2):
     else:
         return 1.
 
-def int_bal_rs(t, y, P0, PV, k50, S, W0, l_k, l_ps, omega_sum, qfi, powders):
+def int_bal_rs(t, y, P0, igniter, k50, S, W0, l_k, l_ps, omega_sum, qfi, powders):
     """
     Функция правых частей системы уравнений внутреней баллистики при аргументе t
     """
@@ -124,7 +124,7 @@ def int_bal_rs(t, y, P0, PV, k50, S, W0, l_k, l_ps, omega_sum, qfi, powders):
         psis[i] = psi(y[2 + i], *powder[7:])
     lambda_khi = (y[1] + l_k)/(y[1] + l_ps)
 
-    p_mean, p_sn, p_kn = P(y, PV, lambda_khi, S, W0, qfi, omega_sum, psis, powders)
+    p_mean, p_sn, p_kn = P(y, igniter, lambda_khi, S, W0, qfi, omega_sum, psis, powders)
     if y[0] == 0. and p_mean < P0:
         f[0] = 0.
         f[1] = 0.
@@ -138,12 +138,12 @@ def int_bal_rs(t, y, P0, PV, k50, S, W0, l_k, l_ps, omega_sum, qfi, powders):
             f[2+i] = (p_mean/powder.Jk) * (y[2+i] < powder.Zk)
     return f
 
-def solve_ib(P0, PV, k50, S, W0, l_k, l_ps, omega_sum, qfi, l_d, powders, method = 'RK4', tmax = 1. , tstep = 1e-5):
+def solve_ib(P0, igniter, k50, S, W0, l_k, l_ps, omega_sum, qfi, l_d, powders, method = 'RK4', tmax = 1. , tstep = 1e-5):
     methods = {'AB5':adams_bashford5, 'RK4':runge_kutta4}
 
     y = np.zeros(2+len(powders))
     zk_list = np.array([powders[i][7] for i in range(len(powders))])
-    args = (P0, PV, k50, S, W0, l_k, l_ps, omega_sum, qfi, powders)
+    args = (P0, igniter, k50, S, W0, l_k, l_ps, omega_sum, qfi, powders)
     ys, ts, events = methods[method](int_bal_rs, y, 0., tmax, tstep, args, stopfunc=lambda t, y: y[1] < l_d,
                              eventfunc=lambda t, y:np.all(zk_list <= y[2:]))
     if events:
@@ -164,9 +164,9 @@ def solve_ib(P0, PV, k50, S, W0, l_k, l_ps, omega_sum, qfi, l_d, powders, method
     p_mean, p_sn, p_kn = np.zeros(ys.shape[1]), np.zeros(ys.shape[1]), np.zeros(ys.shape[1])
 
     for i in range(ys.T.shape[0]):
-        p_mean[i], p_sn[i], p_kn[i] = P(ys.T[i], PV, lambda_khi[i], S, W0, qfi, omega_sum, psis.T[i], powders)
+        p_mean[i], p_sn[i], p_kn[i] = P(ys.T[i], igniter, lambda_khi[i], S, W0, qfi, omega_sum, psis.T[i], powders)
 
-    #ys[2:] = psis
+    ys[2:] = psis
 
     return ts, ys, p_mean, p_sn, p_kn, lk_index
 
