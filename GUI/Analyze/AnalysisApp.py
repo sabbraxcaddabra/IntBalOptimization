@@ -6,7 +6,6 @@ from PyQt5.QtGui import QFont
 
 from InternalBallistics.Analyze.SolveIntBal import solve_ib
 
-
 from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
 from matplotlib.backends.backend_qt5agg import NavigationToolbar2QT as NavigationToolbar
 
@@ -82,7 +81,7 @@ class AnalysisApp(QtWidgets.QMainWindow, analysisGUI.Ui_DialogRes):   #Поме�
         self.plot_(item.text())
 
     def do_raschet(self):
-
+        self.setCursor(QtGui.QCursor(QtCore.Qt.BusyCursor))
         methods = {
             'Метод Рунге-Кутты 4-го порядка':'RK4',
             'Метод Адамса-Башфорда 5-го порядка':'AB5'
@@ -94,7 +93,7 @@ class AnalysisApp(QtWidgets.QMainWindow, analysisGUI.Ui_DialogRes):   #Поме�
 
         try:
 
-            ts, ys, p_mean, p_sn, p_kn = solve_ib(*self.int_bal_cond.create_params_tuple(), method=methods[method_], tstep=tau)
+            ts, ys, p_mean, p_sn, p_kn, lk_index = solve_ib(*self.int_bal_cond.create_params_tuple(), method=methods[method_], tstep=tau)
 
             self.lineEdit_GunSpeed.setText(str(round(ys[0][-1], 1)))
             self.lineEdit_AverPress.setText(str(round(max(p_mean)*1e-6, 2)))
@@ -104,12 +103,14 @@ class AnalysisApp(QtWidgets.QMainWindow, analysisGUI.Ui_DialogRes):   #Поме�
                 'ys':ys,
                 'p_mean':p_mean,
                 'p_sn':p_sn,
-                'p_kn':p_kn
+                'p_kn':p_kn,
+                'lk_index':lk_index
             }
 
             self._fill_result_table()
             self.plot_()
             self.plot_comboBox.setCurrentIndex(1)
+            self.setCursor(QtGui.QCursor(QtCore.Qt.ArrowCursor))
 
         except TooMuchPowderError:
             errorTooMuchPowd = QMessageBox()
@@ -163,6 +164,10 @@ class AnalysisApp(QtWidgets.QMainWindow, analysisGUI.Ui_DialogRes):   #Поме�
         ax.plot(l_d, pressure)
         # max_index = np.argmax(pressure)
         # ax.scatter(l_d[max_index], pressure[max_index])
+        lk_index = self.current_result['lk_index']
+        if lk_index:
+            ax.scatter(l_d[lk_index], pressure[lk_index], linewidths=3, label=f"Окончание горения заряда(lk = {round(l_d[lk_index], 3)} м)")
+            ax.legend()
         ax.set_title(title)
         ax.set_xlabel('Координата по стволу Ld, м')
         ax.set_ylabel('Давление P, МПа')
@@ -183,6 +188,11 @@ class AnalysisApp(QtWidgets.QMainWindow, analysisGUI.Ui_DialogRes):   #Поме�
         # ax.hold(False) # deprecated, see above
         # plot data
         ax.plot(l_d, velocity)
+
+        lk_index = self.current_result['lk_index']
+        if lk_index:
+            ax.scatter(l_d[lk_index], velocity[lk_index], label=f"Окончание горения заряда(lk = {round(l_d[lk_index], 3)} м)")
+            ax.legend()
 
         ax.set_title(title)
         ax.set_xlim(right=1.1 * l_d[-1])
