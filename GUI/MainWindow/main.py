@@ -16,7 +16,7 @@ import initGUI                               #конвертированный �
 import powdersGUI                            #конвертированный в .py фал дизайна окна характеристик порохов
 
 # В этом классе прописываются все взаимодействия с окном ИСХОДНЫХ ДАННЫХ
-class InitApp(QtWidgets.QMainWindow, initGUI.Ui_initWindow):
+class InitApp(QtWidgets.QMainWindow, initGUI.Ui_MainWindow):
 
     selCellDel = None  # Переменная хранит в себе выбранную строку для удаления(в таблице исходных данных порохов)
     def __init__(self):
@@ -475,7 +475,7 @@ class InitApp(QtWidgets.QMainWindow, initGUI.Ui_initWindow):
         return True
 
 # В этом классе прописываются все взаимодействия с окном ХАРАКТЕРИСТИК ПОРОХОВ
-class PowdersApp(QtWidgets.QMainWindow, powdersGUI.Ui_DialogPowders):
+class PowdersApp(QtWidgets.QMainWindow, powdersGUI.Ui_PowdersWindow):
     selCellPowd = None # Переменная хранит в себе выбранную строку в базе порохов
     def __init__(self, parent=None):
         super().__init__()
@@ -532,7 +532,7 @@ class PowdersApp(QtWidgets.QMainWindow, powdersGUI.Ui_DialogPowders):
             errorSelPowd.exec()
 
 # В этом классе прописываются все взаимодействия с окном ХАРАКТЕРИСТИК АРТ. СИСТЕМ
-class ArtSysApp(QtWidgets.QMainWindow, artsysGUI.Ui_DialogArtSys):
+class ArtSysApp(QtWidgets.QMainWindow, artsysGUI.Ui_ArtSysWindow):
     selCellArt = None # Переменная хранит в себе выбранную строку в базе арт. систем
     def __init__(self, parent=None):
         super().__init__()

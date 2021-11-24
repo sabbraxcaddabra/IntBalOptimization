@@ -16,7 +16,7 @@ from PyQt5.QtWidgets import QMessageBox, QHeaderView
 
 
 # В этом классе прописываются все взаимодействия с окно АНАЛИЗА
-class AnalysisApp(QtWidgets.QMainWindow, analysisGUI.Ui_DialogRes):   #Поменять название Ui_Dialog
+class AnalysisApp(QtWidgets.QMainWindow, analysisGUI.Ui_AnalysWindow):   #Поменять название Ui_Dialog
     def __init__(self, parent=None, int_bal_cond=None):
         super().__init__()
         self.setupUi(self)

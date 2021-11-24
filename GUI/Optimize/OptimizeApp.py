@@ -22,7 +22,7 @@ def out_bal_func1(x_vec, f, sol, params):
     print("*" * 30 + '\n')
 
 # В этом классе прописываются все взаимодействия с окном ОПТИМИЗАЦИИ
-class OptimizeApp(QtWidgets.QMainWindow, optimizGUI.Ui_MainOptimize):   #Поменять название Ui_Dialog
+class OptimizeApp(QtWidgets.QMainWindow, optimizGUI.Ui_OptimizeWindow):   #Поменять название Ui_Dialog
     def __init__(self, parent=None):
         super().__init__()
         self.setupUi(self)
