@@ -147,10 +147,10 @@ class AnalysisApp(QtWidgets.QMainWindow, analysisGUI.Ui_DialogRes):   #Поме�
             'Скорость': (self._velocity_graphic, ('Скорость снаряда',))
 
         }
-        if grafics_dict_key == '-':
+        if grafics_dict_key == '<не указан>':
             pass
-
-        plot_dict[grafics_dict_key][0](*plot_dict[grafics_dict_key][1])
+        else:
+            plot_dict[grafics_dict_key][0](*plot_dict[grafics_dict_key][1])
 
     def _pressure_graphics(self, vals='p_mean', title='Среднебаллистическое давление'):
         pressure = self.current_result[vals] * 1e-6
