@@ -81,8 +81,8 @@ class Optimizer(ABC):
         """
         check_list = []
         if self.first_ground_boundary:
-            check_list += [func_dict['func'](x_vec_cur, self.params, func_dict['lims']) for func_dict in
-                          self.first_ground_boundary]
+            check_list += [func_dict['func'](x_vec_cur, self.params, func_dict['lim']) for func_dict in
+                          self.first_ground_boundary.values()]
 
         if len(self.x_lims) != len(x_vec_cur):
             raise Exception("Длина вектора варьируемых параметров не совпадает с длиной вектора ограничений")

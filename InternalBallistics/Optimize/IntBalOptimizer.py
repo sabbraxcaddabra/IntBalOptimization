@@ -1,15 +1,20 @@
 from Optimization.RandomOptimization.Optimizers import *
 from InternalBallistics.IntBalClasses import *
 from InternalBallistics.ErrorClasses import NoOneCombo
+from InternalBallistics.Optimize.TargetFucntions import max_speed_t_func
 from itertools import combinations
 from multiprocessing import Pool
 import numpy as np
-from benchmark import benchmark
 from copy import deepcopy
 
+def check_eta_k(sol, params, eta_k_max):
+    return True #sol[-1]/params.syst.l_d <= eta_k_max
 
 def check_pmax(sol, params, pmax):
-    return sol[0] < pmax
+    return sol[0] <= pmax
+
+def check_max_delta(x_cur, params, max_delta):
+    return sum(powd.omega for powd in params.charge) <= max_delta*params.syst.W0
 
 def adapt_proj_mass(x, params):
     params.syst.q = x[0]
@@ -32,11 +37,20 @@ def adapt_Jk(x, params):
     else:
         params.charge[0].Jk = x[0]
 
+
+
 class IntBalOptimizer(RandomScanOptimizer, RandomSearchOptimizer):
     methods = {
         'random_search': RandomSearchOptimizer.optimize,
         'random_scan': RandomScanOptimizer.optimize
     }
+    KWARGS = {
+        'random_search': {
+            'N': 100, 'M': 50, 't0': 0.1, 'R': 1e-4
+        }
+    }
+
+    combo_out_func = lambda combo: print(combo)
 
     def __init__(self,
                  x_vec,
@@ -46,25 +60,45 @@ class IntBalOptimizer(RandomScanOptimizer, RandomSearchOptimizer):
                  second_ground_boundary=dict(),
                  x_lims=None,
                  t_func=None,
-                 out_func=None, Pmax=None, delta_max=None):
+                 out_func=None, Pmax=None, delta_max=None, max_eta_k=None):
 
         super().__init__(x_vec, params, adapters, first_ground_boundary,
                  second_ground_boundary, x_lims, t_func, out_func)
 
         self.Pmax = Pmax
         self.delta_max = delta_max
-        self.add_second_ground_boundary('Pmax', self._check_p_max())
+        self.max_eta_k = max_eta_k
+        self.set_second_ground_boundary()
+        self.set_first_ground_boundary()
+        self.set_target_func(max_speed_t_func)
         self.add_new_adapter('mass', adapt_powders_mass)
         self.add_new_adapter('Jk', adapt_Jk)
+
+    def set_second_ground_boundary(self):
+
+        self.second_ground_boundary = {
+            'Pmax': {'func': check_pmax, 'lim': self.Pmax},
+            'Eta_k': {'func': check_eta_k, 'lim': self.max_eta_k}
+        }
+
+    def set_first_ground_boundary(self):
+
+        self.first_ground_boundary = {
+            'Delta_max': {'func': check_max_delta, 'lim': self.delta_max}
+        }
+    def set_combo_out_func(self, func):
+        self.combo_out_func = func
 
     def _check_p_max(self):
 
         p_max_dict_func = {'func': check_pmax, 'lim': self.Pmax}
         return p_max_dict_func
 
-    def optimize_with_Jk(self, method='random_search', **kwargs):
+    def optimize_with_Jk(self, method='random_search'):
 
-        self.optimized_xvec = self.methods[method](self, **kwargs)[0]
+        optimized_xvec = self.methods[method](self, **self.KWARGS[method])[0]
+
+        return optimized_xvec
 
     def get_powder_combination(self, Jk_dop_list, max_tol=15.):
         """
@@ -100,14 +134,14 @@ class IntBalOptimizer(RandomScanOptimizer, RandomSearchOptimizer):
             comb_powders = tuple(map(list, combinations(powders_list, len(Jk_dop_list))))
             return comb_powders
 
-    def optimize_one_charge(self, charge, method, **kwargs):
+    def optimize_one_charge(self, charge, method):
 
         for powd in charge:
-            powd.omega = 0.01
+            powd.omega = 0.01 #(self.delta_max * self.params.syst.W0)/(0.5*len(charge))
 
         self.params.charge = charge
-        self.x_vec = np.array([0.01 for _ in range(len(charge))])
-        xx, ff = self.methods[method](self, **kwargs)
+        self.x_vec = np.array([powd.omega for powd in charge])
+        xx, ff = self.methods[method](self, **self.KWARGS[method])
 
         self._adapt(xx)
 
@@ -120,32 +154,34 @@ class IntBalOptimizer(RandomScanOptimizer, RandomSearchOptimizer):
 
         return info_dict
 
-    #@benchmark(iters=10, file_to_write='without_parallize.txt')
-    def get_optimized_powders_mass(self, method='random_search', **kwargs):
+    def get_optimized_powders_mass(self, optimized_xvec, method='random_search'):
 
-        self._adapt(self.optimized_xvec)
+        self._adapt(optimized_xvec)
 
         if "Jk" in self.adapters.keys():
             self.remove_adapter('Jk')
 
-        self.x_lims = [[0., np.inf] for _ in range(len(self.params.charge))]
+        self.x_lims = self.x_lims[::2]
 
         Jk_dop_list = [powd.Jk for powd in self.params.charge]
 
         combos = self.get_powder_combination(Jk_dop_list)
+
         optimized_combos = []
 
         # with Pool(3) as p:
         #     res = p.map(self.optimize_one_charge, combos)
 
         for combo in combos:
-            info_dict = self.optimize_one_charge(combo, method, **kwargs)
+            info_dict = self.optimize_one_charge(combo, method)
             optimized_combos.append(info_dict)
 
         optimized_combos.sort(key=lambda info_dict: info_dict['target_func'], reverse=True)
 
         for combo in optimized_combos:
-            print(combo)
+            self.combo_out_func(combo)
+
+        return optimized_combos
 
         print('*'*40)
         print("Лучший вариант\n", min(optimized_combos, key=lambda info_dict: info_dict['target_func']))

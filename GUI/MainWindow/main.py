@@ -188,7 +188,7 @@ class InitApp(QtWidgets.QMainWindow, initGUI.Ui_initWindow):
         # Проверяем все исходные данные перед расчётом
         if not self.CheckInit():
             return False
-        self.MainOptimize = OptimizeApp(int_bal_cond=self.set_int_bal_cond())
+        self.MainOptimize = OptimizeApp(parent=self)
         self.MainOptimize.show()
 
 
