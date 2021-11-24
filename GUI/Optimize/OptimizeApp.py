@@ -30,9 +30,32 @@ class OptimizeApp(QtWidgets.QMainWindow, optimizGUI.Ui_OptimizeWindow):   #По�
 
         self.butt_Start.clicked.connect(self.do_optimize)
 
+        self.comboBox_MethOptimize.view().pressed.connect(self.handleItemPressed)
+
+    def handleItemPressed(self, index):
+        item = self.comboBox_MethOptimize.model().itemFromIndex(index)
+        if item.row() == 1:
+            self.label_massPowd.setEnabled(True)
+            self.label_FinitImpuls.setEnabled(True)
+            self.val_massPowd.setEnabled(True)
+            self.val_FinitImpuls.setEnabled(True)
+        if item.row() == 0:
+            self.label_massPowd.setDisabled(True)
+            self.label_FinitImpuls.setDisabled(True)
+            self.val_massPowd.setDisabled(True)
+            self.val_FinitImpuls.setDisabled(True)
+
+        #item = self.plot_comboBox.model().itemFromIndex(index)
+
+
 
     def do_optimize(self):
+        methods = {
+            'Случайный поиск': 'random_search',
+            'Случайное сканирование': 'random_scan'
+        }
 
+        method = methods[self.comboBox_MethOptimize.currentText()]
 
         self.int_bal_cond = self.parent.set_int_bal_cond()
 
@@ -65,7 +88,7 @@ class OptimizeApp(QtWidgets.QMainWindow, optimizGUI.Ui_OptimizeWindow):   #По�
 
 
         optimizer = IntBalOptimizer(x_vec, params=self.int_bal_cond, out_func=self.out_func, Pmax=p_max, max_eta_k=max_eta_k, delta_max=max_delta, x_lims=x_lims)
-        optimized_xvec = optimizer.optimize_with_Jk()
+        optimized_xvec = optimizer.optimize_with_Jk(method)
 
         if self.checkBox_SelComp.isChecked():
             self.pick_up_optimum_charge(optimizer, optimized_xvec)
