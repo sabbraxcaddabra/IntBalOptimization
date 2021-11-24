@@ -81,8 +81,8 @@ class Optimizer(ABC):
         """
         check_list = []
         if self.first_ground_boundary:
-            check_list += [func_dict['func'](x_vec_cur, self.params, func_dict['lims']) for func_dict in
-                          self.first_ground_boundary]
+            check_list += [func_dict['func'](x_vec_cur, self.params, func_dict['lim']) for func_dict in
+                          self.first_ground_boundary.values()]
 
         if len(self.x_lims) != len(x_vec_cur):
             raise Exception("Длина вектора варьируемых параметров не совпадает с длиной вектора ограничений")
@@ -157,9 +157,13 @@ class RandomScanOptimizer(Optimizer):
         :param min_delta_f: Минимальное уменьшение целевой функции
         :return: last_x Оптимальное значение вектора x_vec
         """
-        last_x = self.x_vec[:]
-        self._adapt(last_x)
-        last_f, last_second_ground_boundary = self.t_func(last_x, self.params)
+        try:
+            last_x = self.x_vec[:]
+            self._adapt(last_x)
+            last_f, last_second_ground_boundary = self.t_func(last_x, self.params)
+        except:
+            raise FirstStepOptimizationError()
+
         bad_steps_cur = 0  # Счетчик неудачных шагов
         cur_step_modifier = 1
 
@@ -187,7 +191,11 @@ class RandomScanOptimizer(Optimizer):
             if bad_steps_cur == N and cur_step_modifier < max_modifier:
                 bad_steps_cur = 0
                 cur_step_modifier += 1
-        return last_x, last_f
+
+        if not np.array_equal(last_x, self.x_vec):
+            return last_x, last_f
+        else:
+            raise MinStepOptimizerError()
 
 class RandomSearchOptimizer(Optimizer):
 
