@@ -39,6 +39,7 @@ class AnalysisApp(QtWidgets.QMainWindow, analysisGUI.Ui_DialogRes):   #Поме�
         self.result_table.horizontalHeader().setSectionResizeMode(QHeaderView.Fixed) # Запрещаем растягивать заголовки столбцов таблицы результатов
 
 
+
     def first_row_text(self):
         # Если порох один, то оставляем просто Пси, без индекса
         if len(self.int_bal_cond.charge) == 1:
@@ -218,16 +219,19 @@ class AnalysisApp(QtWidgets.QMainWindow, analysisGUI.Ui_DialogRes):   #Поме�
             self.result_table.insertRow(timestep+1)
             a = Qt.QTableWidgetItem(str(round(self.current_result['ts'][timestep]*1e3, 2)))
             a.setTextAlignment(QtCore.Qt.AlignCenter)
+            a.setFlags(QtCore.Qt.ItemIsSelectable | QtCore.Qt.ItemIsEnabled)
             self.result_table.setItem(timestep, 0, a)
             for index, y in enumerate(self.current_result['ys'], start=1):
                 a = Qt.QTableWidgetItem(str(round(y[timestep], 2)))
                 a.setTextAlignment(QtCore.Qt.AlignCenter)
+                a.setFlags(QtCore.Qt.ItemIsSelectable | QtCore.Qt.ItemIsEnabled)  # Отключаем возможность редакт. ячейку
                 self.result_table.setItem(timestep, index, a)
             p_map = map(self.current_result.get, ('p_mean', 'p_sn', 'p_kn'))
 
             for i, p in enumerate(p_map, start=index+1):
                 a = Qt.QTableWidgetItem(str(round(p[timestep]*1e-6, 2)))
                 a.setTextAlignment(QtCore.Qt.AlignCenter)
+                a.setFlags(QtCore.Qt.ItemIsSelectable | QtCore.Qt.ItemIsEnabled)
                 self.result_table.setItem(timestep, i, a)
         # Удаляем лишнюю строку
         valRow = self.result_table.rowCount()
