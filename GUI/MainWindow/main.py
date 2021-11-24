@@ -139,6 +139,11 @@ class InitApp(QtWidgets.QMainWindow, initGUI.Ui_initWindow):
 
     # Метод вызывает окно анализа
     def StartAnalysis(self):
+        self.DialogAnalysis = AnalysisApp(int_bal_cond=self.set_int_bal_cond())
+        self.DialogAnalysis.show()
+
+
+    def set_int_bal_cond(self):
         # Проверяем все исходные данные перед расчётом
         if not self.CheckInit():
             return False
@@ -146,8 +151,8 @@ class InitApp(QtWidgets.QMainWindow, initGUI.Ui_initWindow):
         nameArt = self.tableInitArtSys.item(0, 0).text()
         CharArtSys = [float(self.tableInitArtSys.item(i, 0).text()) for i in range(1, 9)]
 
-        artsys = ArtSystem(name=nameArt, d=CharArtSys[0], q=CharArtSys[1], S=CharArtSys[2], W0=CharArtSys[3], l_d=CharArtSys[4], l_k=CharArtSys[5],
-                           l0=CharArtSys[6], Kf=CharArtSys[7])
+        artsys = ArtSystem(name=nameArt, d=CharArtSys[0], q=CharArtSys[1], S=CharArtSys[2], W0=CharArtSys[3],
+                           l_d=CharArtSys[4], l_k=CharArtSys[5], l0=CharArtSys[6], Kf=CharArtSys[7])
         # Передаём параметры заряжания
 
         Pforc = float(self.val_PressForc.text())*1e6
@@ -170,12 +175,12 @@ class InitApp(QtWidgets.QMainWindow, initGUI.Ui_initWindow):
             CharPowd = [float(self.tableInitPowders.item(i, j).text()) for i in range(1, 17)]
 
             int_bal_cond.add_powder(
-                Powder(name=NamePowd, omega=CharPowd[0], rho=CharPowd[1], f_powd=CharPowd[2], Ti=CharPowd[3], Jk=CharPowd[4], alpha=CharPowd[5], teta=CharPowd[6],
-                Zk=CharPowd[7], kappa1=CharPowd[8], lambd1=CharPowd[9], mu1=CharPowd[10], kappa2=CharPowd[11], lambd2=CharPowd[12], mu2=CharPowd[13], gamma_f=CharPowd[14], gamma_Jk=CharPowd[15]))
+                Powder(name=NamePowd, omega=CharPowd[0], rho=CharPowd[1], f_powd=CharPowd[2], Ti=CharPowd[3],
+                       Jk=CharPowd[4], alpha=CharPowd[5], teta=CharPowd[6], Zk=CharPowd[7], kappa1=CharPowd[8],
+                       lambd1=CharPowd[9], mu1=CharPowd[10], kappa2=CharPowd[11], lambd2=CharPowd[12], mu2=CharPowd[13],
+                       gamma_f=CharPowd[14], gamma_Jk=CharPowd[15]))
 
-        self.DialogAnalysis = AnalysisApp(int_bal_cond=int_bal_cond)
-        self.DialogAnalysis.show()
-
+        return int_bal_cond
 
 
     # Метод вызывает окно оптимизации
@@ -183,7 +188,7 @@ class InitApp(QtWidgets.QMainWindow, initGUI.Ui_initWindow):
         # Проверяем все исходные данные перед расчётом
         if not self.CheckInit():
             return False
-        self.MainOptimize = OptimizeApp()
+        self.MainOptimize = OptimizeApp(int_bal_cond=self.set_int_bal_cond())
         self.MainOptimize.show()
 
 

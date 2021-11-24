@@ -10,6 +10,7 @@ from copy import deepcopy
 
 def check_pmax(sol, params, pmax):
     return sol[0] < pmax
+
 def adapt_proj_mass(x, params):
     params.syst.q = x[0]
 

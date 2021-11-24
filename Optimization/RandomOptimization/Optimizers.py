@@ -3,20 +3,16 @@ import numpy as np
 from numpy.random import uniform
 from numpy.linalg import norm
 
+from Optimization.OptimizationErrors import *
+
+__all__ = ['RandomScanOptimizer', 'RandomSearchOptimizer']
+
 # TODO: Добавить методы для удаления ограничений 1-го и 2-го рода по ключу
 # TODO: Проверить качество и правильность реализации метода случайного сканирования
 # TODO: Добавить еще несколько реализацций алгоритмов оптимизации
 # TODO: Написать нормальную документацию для каждого класса
 
-class TooMuchItersOptimizerError(Exception):
-    def __str__(self):
-        return "Не найдено ни одного оптимума. Израсходовано максимальное число итераций\n" \
-               "Попробуйте меньший шаг или большее максимальное число итераций"
 
-class MinStepOptimizerError(Exception):
-    def __str__(self):
-        return "Не найдено ни одного оптимума. Достигнут минимальный шаг\n" \
-               "Попробуйте меньший шаг или большее максимальное число итераций"
 
 class Optimizer(ABC):
     """
@@ -27,7 +23,7 @@ class Optimizer(ABC):
     def __init__(self,
                  x_vec,
                  params=None,
-                 adapters=[],
+                 adapters=dict(),
                  first_ground_boundary=dict(),
                  second_ground_boundary=dict(),
                  x_lims=None,
@@ -42,13 +38,13 @@ class Optimizer(ABC):
         self.t_func = t_func
         self.out_func = out_func
 
-    def add_new_adapter(self, adapt_func) -> None:
+    def add_new_adapter(self, key, adapt_func) -> None:
         """
         Метод для добавления в задачу нового адаптера
         :param adapt_func: Функция, лямбда-функция, классовый метод и т.д(callable объект)
         :return: None
         """
-        self.adapters.append(adapt_func)
+        self.adapters[key] = adapt_func
 
     def _adapt(self, x_vec_new: list) -> None:
         """
@@ -58,8 +54,12 @@ class Optimizer(ABC):
         :return: None
         """
         if self.adapters:
-            for func in self.adapters:
+            for func in self.adapters.values():
                 func(x_vec_new, self.params)
+
+    def remove_adapter(self, key):
+
+        del self.adapters[key]
 
     def add_first_ground_boundary(self, name: str, func_dict: dict) -> None:
         """
@@ -79,14 +79,15 @@ class Optimizer(ABC):
         :param x_vec_cur: Текущая реализация вектора варьируемых параметров
         :return: bool
         """
+        check_list = []
         if self.first_ground_boundary:
-            check_list = [func_dict['func'](x_vec_cur, self.params, func_dict['lims']) for func_dict in
+            check_list += [func_dict['func'](x_vec_cur, self.params, func_dict['lims']) for func_dict in
                           self.first_ground_boundary]
+
+        if len(self.x_lims) != len(x_vec_cur):
+            raise Exception("Длина вектора варьируемых параметров не совпадает с длиной вектора ограничений")
         else:
-            if len(self.x_lims) != len(x_vec_cur):
-                raise Exception("Длина вектора варьируемых параметров не совпадает с длиной вектора ограничений")
-            else:
-                check_list = [lim[0] <= x <= lim[1] for lim, x in zip(self.x_lims, x_vec_cur)]
+            check_list += [lim[0] <= x <= lim[1] for lim, x in zip(self.x_lims, x_vec_cur)]
         return all(check_list)
 
     def add_second_ground_boundary(self, name: str, func_dict: dict) -> None:
@@ -186,7 +187,7 @@ class RandomScanOptimizer(Optimizer):
             if bad_steps_cur == N and cur_step_modifier < max_modifier:
                 bad_steps_cur = 0
                 cur_step_modifier += 1
-        return last_x
+        return last_x, last_f
 
 class RandomSearchOptimizer(Optimizer):
 
@@ -228,38 +229,37 @@ class RandomSearchOptimizer(Optimizer):
         """
         steps_total = 0
         bad_steps_cur = 1
-        last_x = self.x_vec[:]
-        self._adapt(last_x)
-        last_f, last_second_ground_boundary = self.t_func(last_x, self.params)
+        try:
+            last_x = np.ones(len(self.x_vec))
+            self._adapt(last_x*self.x_vec)
+            last_f, last_second_ground_boundary = self.t_func(last_x, self.params)
+        except:
+            raise FirstStepOptimizationError()
 
         while steps_total < N:
             while bad_steps_cur < M:
-                yj = self._get_yj(last_x, t0)
+                yj = self.x_vec * self._get_yj(last_x, t0)
                 self._adapt(yj)
                 if self._check_first_ground_boundary(yj):
                     try:
                         cur_f, cur_solution = self.t_func(yj, self.params)
                         if self._check_second_ground_boundary(cur_solution):
                             if cur_f <= last_f and abs(cur_f - last_f) > min_delta_f:
-                                zj = self._get_zj(last_x, alpha, yj)
+                                zj = self.x_vec * self._get_zj(last_x, alpha, yj/self.x_vec)
                                 self._adapt(zj)
                                 if self._check_first_ground_boundary(zj):
-                                    try:
-                                        cur_f, cur_solution = self.t_func(zj, self.params)
-                                        if self._check_second_ground_boundary(cur_solution):
-                                            if cur_f <= last_f and abs(cur_f - last_f) > min_delta_f:
-                                                last_x, last_f = zj, cur_f
-                                                t0 *= alpha
-                                                steps_total += 1
-                                                if self.out_func:
-                                                    # break
-                                                    self.out_func(zj, cur_f, cur_solution, self.params)
-                                                break
-                                            else:
-                                                bad_steps_cur += 1
+                                    cur_f, cur_solution = self.t_func(zj, self.params)
+                                    if self._check_second_ground_boundary(cur_solution):
+                                        if cur_f <= last_f and abs(cur_f - last_f) > min_delta_f:
+                                            last_x, last_f = zj/self.x_vec, cur_f
+                                            t0 *= alpha
+                                            steps_total += 1
+                                            if self.out_func:
+                                                self.out_func(zj, cur_f, cur_solution, self.params)
+                                            break
                                         else:
                                             bad_steps_cur += 1
-                                    except:
+                                    else:
                                         bad_steps_cur += 1
                                 else:
                                     bad_steps_cur += 1
@@ -273,16 +273,17 @@ class RandomSearchOptimizer(Optimizer):
                     bad_steps_cur += 1
 
             if t0 <= R:
-                if not np.array_equal(last_x, self.x_vec):
-                    print(f"Оптимизация завершилась успешно, шаг минимальный {t0=}")
-                    return last_x
+                if not np.array_equal(last_x, np.ones(len(self.x_vec))):
+                    #print(f"Оптимизация завершилась успешно, шаг минимальный {t0=}")
+                    return last_x * self.x_vec, last_f
                 else:
                     raise MinStepOptimizerError()
             else:
                 t0 *= beta
                 bad_steps_cur = 1
-        if not np.array_equal(last_x, self.x_vec[:]):
-            print("Оптимизация завершилась успешно, израсходованно максимальное число итераций")
-            return last_x
+
+        if not np.array_equal(last_x, np.ones(len(self.x_vec))):
+            #print("Оптимизация завершилась успешно, израсходованно максимальное число итераций")
+            return last_x * self.x_vec, last_f
         else:
             raise TooMuchItersOptimizerError()
