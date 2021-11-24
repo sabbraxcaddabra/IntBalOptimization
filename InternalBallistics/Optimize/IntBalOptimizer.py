@@ -8,7 +8,11 @@ import numpy as np
 from copy import deepcopy
 
 def check_eta_k(sol, params, eta_k_max):
-    return True #sol[-1]/params.syst.l_d <= eta_k_max
+    if sol[-1] != 0:
+        res = sol[-1]/params.syst.l_d <= eta_k_max
+        return res
+    else:
+        return False
 
 def check_pmax(sol, params, pmax):
     return sol[0] <= pmax
