@@ -7,6 +7,7 @@ from PyQt5.QtGui import QFont
 from PyQt5.QtWidgets import QMessageBox, QFileDialog, QHeaderView
 from InternalBallistics.IntBalClasses import ArtSystem, Powder, IntBalParams
 from GUI.Analyze.AnalysisApp import AnalysisApp
+from GUI.Optimize.OptimizeApp import OptimizeApp
 
 
 
@@ -43,8 +44,8 @@ class InitApp(QtWidgets.QMainWindow, initGUI.Ui_initWindow):
         self.act_save.triggered.connect(self.FileSave)                      # Вызывваем окно сохранения файла
         self.act_open.triggered.connect(self.FileOpen)                      # Вызываем окно открытия файла
         self.butt_anal.clicked.connect(self.StartAnalysis)                  # Вызываем окно анализа
+        self.butt_synth.clicked.connect(self.StartOptimize)                 # Вызываем окно оптимизации
         self.combo_regIgnit.activated.connect(self.comboReg)                # Обрабатываем выбор комбобокса
-
 
     # Метод масштабирует шрифты, в зависимости от разрешения
     def resizeEvent(self, event):
@@ -72,16 +73,6 @@ class InitApp(QtWidgets.QMainWindow, initGUI.Ui_initWindow):
         # self.tableInitArtSys.verticalHeader().setSectionResizeMode(QHeaderView.Interactive)
         # self.tableInitArtSys.horizontalHeader().setSectionResizeMode(QHeaderView.Interactive)
         pass
-
-
-
-
-
-
-
-
-
-
 
 
     # Метод обрабатывает выбор в комбобоксе
@@ -145,6 +136,7 @@ class InitApp(QtWidgets.QMainWindow, initGUI.Ui_initWindow):
         self.DialogArtSys = ArtSysApp(self)
         self.DialogArtSys.show()
 
+
     # Метод вызывает окно анализа
     def StartAnalysis(self):
         # Проверяем все исходные данные перед расчётом
@@ -183,6 +175,18 @@ class InitApp(QtWidgets.QMainWindow, initGUI.Ui_initWindow):
 
         self.DialogAnalysis = AnalysisApp(int_bal_cond=int_bal_cond)
         self.DialogAnalysis.show()
+
+
+
+    # Метод вызывает окно оптимизации
+    def StartOptimize(self):
+        # Проверяем все исходные данные перед расчётом
+        if not self.CheckInit():
+            return False
+        self.MainOptimize = OptimizeApp()
+        self.MainOptimize.show()
+
+
 
     # Метод производит сохранение файла
     def FileSave(self):

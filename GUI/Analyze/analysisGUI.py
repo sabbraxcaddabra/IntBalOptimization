@@ -162,7 +162,7 @@ class Ui_DialogRes(object):
         self.step_lineEdit = QtWidgets.QLineEdit(self.groupBox_2)
         self.step_lineEdit.setGeometry(QtCore.QRect(340, 80, 121, 31))
         font = QtGui.QFont()
-        font.setPointSize(10)
+        font.setPointSize(11)
         font.setBold(False)
         font.setWeight(50)
         self.step_lineEdit.setFont(font)
