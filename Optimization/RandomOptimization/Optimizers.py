@@ -79,14 +79,15 @@ class Optimizer(ABC):
         :param x_vec_cur: Текущая реализация вектора варьируемых параметров
         :return: bool
         """
+        check_list = []
         if self.first_ground_boundary:
-            check_list = [func_dict['func'](x_vec_cur, self.params, func_dict['lims']) for func_dict in
+            check_list += [func_dict['func'](x_vec_cur, self.params, func_dict['lims']) for func_dict in
                           self.first_ground_boundary]
+
+        if len(self.x_lims) != len(x_vec_cur):
+            raise Exception("Длина вектора варьируемых параметров не совпадает с длиной вектора ограничений")
         else:
-            if len(self.x_lims) != len(x_vec_cur):
-                raise Exception("Длина вектора варьируемых параметров не совпадает с длиной вектора ограничений")
-            else:
-                check_list = [lim[0] <= x <= lim[1] for lim, x in zip(self.x_lims, x_vec_cur)]
+            check_list += [lim[0] <= x <= lim[1] for lim, x in zip(self.x_lims, x_vec_cur)]
         return all(check_list)
 
     def add_second_ground_boundary(self, name: str, func_dict: dict) -> None:
