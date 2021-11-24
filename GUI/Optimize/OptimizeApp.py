@@ -35,18 +35,6 @@ class OptimizeApp(QtWidgets.QMainWindow, optimizGUI.Ui_OptimizeWindow):   #По�
 
 
         self.int_bal_cond = self.parent.set_int_bal_cond()
-        p_max = float(self.val_maxPress.text())*1e6
-
-        powd_mass_lim = float(self.val_massPowd.text())/100.
-
-        finit_imp_lim = float(self.val_FinitImpuls.text())/100
-
-        max_delta = float(self.val_maxDensity.text())
-
-        max_eta_k = float(self.val__coordGor.text())
-
-        x_lims = [[0., powd.omega + powd_mass_lim*powd.omega] for powd in self.int_bal_cond.charge] + \
-            [[powd.Jk - finit_imp_lim*powd.Jk, powd.Jk + finit_imp_lim*powd.Jk] for powd in self.int_bal_cond.charge]
 
         x_vec = []
 
@@ -54,6 +42,27 @@ class OptimizeApp(QtWidgets.QMainWindow, optimizGUI.Ui_OptimizeWindow):   #По�
             x_vec.extend((powd.omega, powd.Jk))
 
         x_vec = np.array(x_vec)
+
+
+
+        combo_index = self.comboBox_MethOptimize.currentIndex()
+
+        if combo_index == 0:
+            x_lims = [[0, np.inf] for _ in range(len(x_vec))]
+        else:
+            powd_mass_lim = float(self.val_massPowd.text())/100.
+
+            finit_imp_lim = float(self.val_FinitImpuls.text())/100
+
+            x_lims = [[0., powd.omega + powd_mass_lim*powd.omega] for powd in self.int_bal_cond.charge] + \
+                [[powd.Jk - finit_imp_lim*powd.Jk, powd.Jk + finit_imp_lim*powd.Jk] for powd in self.int_bal_cond.charge]
+
+        max_delta = float(self.val_maxDensity.text())
+
+        p_max = float(self.val_maxPress.text()) * 1e6
+        max_eta_k = float(self.val__coordGor.text())
+
+
 
         optimizer = IntBalOptimizer(x_vec, params=self.int_bal_cond, out_func=self.out_func, Pmax=p_max, max_eta_k=max_eta_k, delta_max=max_delta, x_lims=x_lims)
         optimized_xvec = optimizer.optimize_with_Jk()
