@@ -37,6 +37,7 @@ class AnalysisApp(QtWidgets.QMainWindow, analysisGUI.Ui_AnalysWindow):   #Пом
 
         self.result_table.verticalHeader().setSectionResizeMode(QHeaderView.Fixed)  # Запрещаем растягивать заголовки строк таблицы результатов
         self.result_table.horizontalHeader().setSectionResizeMode(QHeaderView.Fixed) # Запрещаем растягивать заголовки столбцов таблицы результатов
+        self.butt_close.clicked.connect(self.close)                         # Событие кнопки "Закрыть"
 
 
 
@@ -67,13 +68,11 @@ class AnalysisApp(QtWidgets.QMainWindow, analysisGUI.Ui_AnalysWindow):   #Пом
                 a.setFont(fontBold)
 
                 self.result_table.insertColumn(3 + i)
-                self.result_table.setHorizontalHeaderItem(3+i, a)                           # ВОТ ТУТ ВМЕСТЕ С ВАДИМОМ ГЛЯНУТЬ
+                self.result_table.setHorizontalHeaderItem(3+i, a)
 
 
-        # PV = str(self.int_bal_cond.PV * 1e-6)
-        # for k in range(3+len(self.int_bal_cond.charge), len(self.int_bal_cond.charge)+6):
-        #     a = Qt.QTableWidgetItem(PV)
-        #     self.result_table.setItem(0, k, a)
+
+
 
 
 
@@ -85,6 +84,14 @@ class AnalysisApp(QtWidgets.QMainWindow, analysisGUI.Ui_AnalysWindow):   #Пом
             self.plot_(item.text())
 
     def do_raschet(self):
+        # Добавить проверку введенных данных!!!!!
+
+        # Делаем видимым вкладку график
+        self.plots.setEnabled(True)
+        self.plot_comboBox.setEnabled(True)
+        # Удаляем пункт "Не указан"
+        self.plot_comboBox.removeItem(0)
+
         self.setCursor(QtGui.QCursor(QtCore.Qt.BusyCursor))
         methods = {
             'Метод Рунге-Кутты 4-го порядка':'RK4',
@@ -113,7 +120,7 @@ class AnalysisApp(QtWidgets.QMainWindow, analysisGUI.Ui_AnalysWindow):   #Пом
 
             self._fill_result_table()
             self.plot_()
-            self.plot_comboBox.setCurrentIndex(1)
+            self.plot_comboBox.setCurrentIndex(0)
             self.setCursor(QtGui.QCursor(QtCore.Qt.ArrowCursor))
 
         except TooMuchPowderError:
@@ -147,7 +154,7 @@ class AnalysisApp(QtWidgets.QMainWindow, analysisGUI.Ui_AnalysWindow):   #Пом
             'Среднебаллистическое давление': (self._pressure_graphics, ('p_mean', 'Среднебаллистическое давление')),
             'Давление на дно снаряда': (self._pressure_graphics, ('p_sn', 'Давление на дно снаряда')),
             'Давление на дно канала ствола': (self._pressure_graphics, ('p_kn', 'Давление на дно канала ствола')),
-            'Скорость': (self._velocity_graphic, ('Скорость снаряда',))
+            'Скорость снаряда': (self._velocity_graphic, ('Скорость снаряда',))
 
         }
         if self.current_result:
@@ -237,3 +244,11 @@ class AnalysisApp(QtWidgets.QMainWindow, analysisGUI.Ui_AnalysWindow):   #Пом
         # Удаляем лишнюю строку
         valRow = self.result_table.rowCount()
         self.result_table.removeRow(valRow-1)
+
+        # Настраиваем ширину заголовков
+        # Узнаем текущее количество колонок
+        ColVal = self.result_table.columnCount()
+        header = self.result_table.horizontalHeader()
+
+        for col in range(ColVal):
+            header.setSectionResizeMode(col, QHeaderView.Stretch)

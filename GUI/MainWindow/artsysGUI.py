@@ -14,7 +14,7 @@ from PyQt5 import QtCore, QtGui, QtWidgets
 class Ui_ArtSysWindow(object):
     def setupUi(self, ArtSysWindow):
         ArtSysWindow.setObjectName("ArtSysWindow")
-        ArtSysWindow.resize(679, 520)
+        ArtSysWindow.resize(719, 520)
         self.centralwidget = QtWidgets.QWidget(ArtSysWindow)
         self.centralwidget.setObjectName("centralwidget")
         self.verticalLayout = QtWidgets.QVBoxLayout(self.centralwidget)
@@ -27,6 +27,7 @@ class Ui_ArtSysWindow(object):
         font.setWeight(50)
         self.tableCharArtSys.setFont(font)
         self.tableCharArtSys.setFocusPolicy(QtCore.Qt.NoFocus)
+        self.tableCharArtSys.setVerticalScrollBarPolicy(QtCore.Qt.ScrollBarAlwaysOn)
         self.tableCharArtSys.setSizeAdjustPolicy(QtWidgets.QAbstractScrollArea.AdjustToContents)
         self.tableCharArtSys.setTextElideMode(QtCore.Qt.ElideRight)
         self.tableCharArtSys.setColumnCount(8)

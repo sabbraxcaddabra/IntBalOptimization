@@ -9,7 +9,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>765</width>
+    <width>721</width>
     <height>665</height>
    </rect>
   </property>
@@ -1050,7 +1050,7 @@
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>765</width>
+     <width>721</width>
      <height>23</height>
     </rect>
    </property>
@@ -1079,6 +1079,8 @@
     </property>
     <addaction name="act_open"/>
     <addaction name="act_save"/>
+    <addaction name="separator"/>
+    <addaction name="act_close"/>
    </widget>
    <addaction name="file"/>
    <addaction name="bases"/>
@@ -1134,6 +1136,16 @@
   <action name="action">
    <property name="text">
     <string>Тебе никто не поможет...</string>
+   </property>
+  </action>
+  <action name="act_close">
+   <property name="text">
+    <string>Выход</string>
+   </property>
+   <property name="font">
+    <font>
+     <pointsize>10</pointsize>
+    </font>
    </property>
   </action>
  </widget>

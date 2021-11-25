@@ -14,7 +14,7 @@ from PyQt5 import QtCore, QtGui, QtWidgets
 class Ui_PowdersWindow(object):
     def setupUi(self, PowdersWindow):
         PowdersWindow.setObjectName("PowdersWindow")
-        PowdersWindow.resize(1315, 491)
+        PowdersWindow.resize(1349, 491)
         self.centralwidget = QtWidgets.QWidget(PowdersWindow)
         self.centralwidget.setObjectName("centralwidget")
         self.verticalLayout = QtWidgets.QVBoxLayout(self.centralwidget)
@@ -33,6 +33,7 @@ class Ui_PowdersWindow(object):
         font.setWeight(50)
         self.tableCharPowders.setFont(font)
         self.tableCharPowders.setFocusPolicy(QtCore.Qt.StrongFocus)
+        self.tableCharPowders.setVerticalScrollBarPolicy(QtCore.Qt.ScrollBarAlwaysOn)
         self.tableCharPowders.setSizeAdjustPolicy(QtWidgets.QAbstractScrollArea.AdjustToContents)
         self.tableCharPowders.setTextElideMode(QtCore.Qt.ElideRight)
         self.tableCharPowders.setColumnCount(16)

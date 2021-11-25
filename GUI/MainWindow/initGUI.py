@@ -15,7 +15,7 @@ class Ui_MainWindow(object):
     def setupUi(self, MainWindow):
         MainWindow.setObjectName("MainWindow")
         MainWindow.setEnabled(True)
-        MainWindow.resize(765, 665)
+        MainWindow.resize(721, 665)
         sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Preferred, QtWidgets.QSizePolicy.Preferred)
         sizePolicy.setHorizontalStretch(0)
         sizePolicy.setVerticalStretch(0)
@@ -497,7 +497,7 @@ class Ui_MainWindow(object):
         self.gridLayout.addWidget(self.groupBox_2, 0, 0, 1, 1)
         MainWindow.setCentralWidget(self.centralwidget)
         self.menubar = QtWidgets.QMenuBar(MainWindow)
-        self.menubar.setGeometry(QtCore.QRect(0, 0, 765, 23))
+        self.menubar.setGeometry(QtCore.QRect(0, 0, 721, 23))
         font = QtGui.QFont()
         font.setPointSize(10)
         font.setStrikeOut(False)
@@ -540,10 +540,17 @@ class Ui_MainWindow(object):
         self.act_save.setObjectName("act_save")
         self.action = QtWidgets.QAction(MainWindow)
         self.action.setObjectName("action")
+        self.act_close = QtWidgets.QAction(MainWindow)
+        font = QtGui.QFont()
+        font.setPointSize(10)
+        self.act_close.setFont(font)
+        self.act_close.setObjectName("act_close")
         self.bases.addAction(self.act_powders)
         self.bases.addAction(self.act_artsys)
         self.file.addAction(self.act_open)
         self.file.addAction(self.act_save)
+        self.file.addSeparator()
+        self.file.addAction(self.act_close)
         self.menubar.addAction(self.file.menuAction())
         self.menubar.addAction(self.bases.menuAction())
 
@@ -628,6 +635,7 @@ class Ui_MainWindow(object):
         self.act_open.setText(_translate("MainWindow", "Открыть.."))
         self.act_save.setText(_translate("MainWindow", "Сохранить.."))
         self.action.setText(_translate("MainWindow", "Тебе никто не поможет..."))
+        self.act_close.setText(_translate("MainWindow", "Выход"))
 
 
 if __name__ == "__main__":

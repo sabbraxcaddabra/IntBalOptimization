@@ -26,6 +26,7 @@ class InitApp(QtWidgets.QMainWindow, initGUI.Ui_MainWindow):
 
         #self.tableInitArtSys.verticalHeader().setSectionResizeMode(QHeaderView.Fixed)   # Запрещаем растягивать заголовки строк таблицы арт. систем
 
+        # Растягиваем колонки и строки табл. арт. систем
         self.tableInitArtSys.verticalHeader().setSectionResizeMode(QHeaderView.Stretch)
         self.tableInitArtSys.horizontalHeader().setSectionResizeMode(QHeaderView.Stretch)
 
@@ -43,6 +44,7 @@ class InitApp(QtWidgets.QMainWindow, initGUI.Ui_MainWindow):
         self.butt_del.clicked.connect(self.delColumnPowder)                 # Удаляет последнюю колонку в таблице порохов
         self.act_save.triggered.connect(self.FileSave)                      # Вызывваем окно сохранения файла
         self.act_open.triggered.connect(self.FileOpen)                      # Вызываем окно открытия файла
+        self.act_close.triggered.connect(self.close)                        # Закрываем программу через меню бар
         self.butt_anal.clicked.connect(self.StartAnalysis)                  # Вызываем окно анализа
         self.butt_synth.clicked.connect(self.StartOptimize)                 # Вызываем окно оптимизации
         self.combo_regIgnit.activated.connect(self.comboReg)                # Обрабатываем выбор комбобокса
@@ -139,14 +141,14 @@ class InitApp(QtWidgets.QMainWindow, initGUI.Ui_MainWindow):
 
     # Метод вызывает окно анализа
     def StartAnalysis(self):
+        # Проверяем все исходные данные перед расчётом
+        if not self.CheckInit():
+            return False
         self.DialogAnalysis = AnalysisApp(int_bal_cond=self.set_int_bal_cond())
         self.DialogAnalysis.show()
 
 
     def set_int_bal_cond(self):
-        # Проверяем все исходные данные перед расчётом
-        if not self.CheckInit():
-            return False
         # Передаём хар-ки арт. системы
         nameArt = self.tableInitArtSys.item(0, 0).text()
         CharArtSys = [float(self.tableInitArtSys.item(i, 0).text()) for i in range(1, 9)]
@@ -483,6 +485,7 @@ class PowdersApp(QtWidgets.QMainWindow, powdersGUI.Ui_PowdersWindow):
         self.setupUi(self)
         #self.tableCharPowders.verticalHeader().setSectionResizeMode(QHeaderView.Fixed)  # Запрещаем растягивать заголовки строк таблицы порохов
         #self.tableCharPowders.horizontalHeader().setSectionResizeMode(QHeaderView.Fixed) # Запрещаем растягивать заголовки столбцов таблицы порохов
+
 #Считывание порохов из базы в таблицу
         header = self.tableCharPowders.horizontalHeader()
         F = open('PowdersBase.txt', 'r', encoding='utf8')                                               #Открываем файл
@@ -492,16 +495,17 @@ class PowdersApp(QtWidgets.QMainWindow, powdersGUI.Ui_PowdersWindow):
             for col in range(16):                                                                       #Цикл бежит по колонкам
                 if col == 0:                                                                            #Здесь просто убираем разделитель в
                     curLine[col] = curLine[col].replace("_"," ")                                        #названии пороха для красоты
+                    header.setSectionResizeMode(col, QtWidgets.QHeaderView.ResizeToContents)              # Подгоняем ширину первой колонки под текст
+                else:
+                    header.setSectionResizeMode(col, QHeaderView.Stretch)  # Подгоняем ширину всех колонок кроме первой под оставшийся размер окна
                 valcell = Qt.QTableWidgetItem(curLine[col])                                             #Говорим что в переменной айтем для таблицы
                 valcell.setTextAlignment(QtCore.Qt.AlignCenter)                                         #Размещаем текст по центру ячейки
-                header.setSectionResizeMode(col, QtWidgets.QHeaderView.ResizeToContents)                #Подгоняем ширину колонки под текст
                 valcell.setFlags(QtCore.Qt.ItemIsSelectable | QtCore.Qt.ItemIsEnabled)                  #Отключаем возможность редакт. ячейку
                 self.tableCharPowders.setItem(row, col , valcell)                                       #Вставляем айтем в ячейку
             row += 1                                                                                    #Увеличиваем счётчик для перехода на новую строку
             self.tableCharPowders.insertRow(row)                                                        #Добавляем новую строку за текущей
         self.tableCharPowders.removeRow(row)                                                            #В конце удаляем лишнюю строку
         F.close()                                                                                       #Закрываем файл
-
 
         self.tableCharPowders.verticalHeader().sectionClicked.connect(self.selPowder)           # Отслеживаем клик по шапке строки
         self.butt_PowdersAdd.clicked.connect(self.AddPowder)                                    # Добавляем выбранный порох
@@ -549,9 +553,12 @@ class ArtSysApp(QtWidgets.QMainWindow, artsysGUI.Ui_ArtSysWindow):
             for col in range(8):
                 if col == 0:
                     curLine[col] = curLine[col].replace("_", " ")
+                    header.setSectionResizeMode(col, QtWidgets.QHeaderView.ResizeToContents)
+                else:
+                    header.setSectionResizeMode(col, QHeaderView.Stretch)  # Подгоняем ширину всех колонок кроме первой под оставшийся размер окна
+
                 valcell = Qt.QTableWidgetItem(curLine[col])
                 valcell.setTextAlignment(QtCore.Qt.AlignCenter)
-                header.setSectionResizeMode(col, QtWidgets.QHeaderView.ResizeToContents)
                 valcell.setFlags(QtCore.Qt.ItemIsSelectable | QtCore.Qt.ItemIsEnabled)
                 self.tableCharArtSys.setItem(row, col , valcell)
             row += 1

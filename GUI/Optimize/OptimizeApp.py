@@ -112,9 +112,16 @@ class MyThread(QThread):
         text += f"Координата полного сгорания порохового заряда {round(sol[3], 4)} м\n"
         text += "*" * 30 + '\n'
 
+
         self.parent.textBrowser_optimize.append(text)
 
-        time.sleep(0.1)
+        #Автоматическое перемещение скролбара
+        self.parent.textBrowser_optimize.moveCursor(QtGui.QTextCursor.End)
+        self.parent.textBrowser_optimize.ensureCursorVisible()
+
+
+
+        time.sleep(0.2)
 
 def out_bal_func1(x_vec, f, sol, params):
     print(f"Масса снаряда: {params.syst.q = } кг")
@@ -139,6 +146,7 @@ class OptimizeApp(QtWidgets.QMainWindow, optimizGUI.Ui_OptimizeWindow):   #По�
 
         self.comboBox_MethOptimize.view().pressed.connect(self.handleItemPressed)
         self.checkBox_regGor.stateChanged.connect(self.checkRegGor)
+        self.butt_close.clicked.connect(self.close)
 
     #Метод учёта догорания заряда
     def checkRegGor(self):
