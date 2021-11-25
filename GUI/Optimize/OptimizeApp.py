@@ -36,8 +36,6 @@ class MyThread(QThread):
 
         x_vec = np.array(x_vec)
 
-
-
         combo_index = self.parent.comboBox_MethOptimize.currentIndex()
 
         if combo_index == 0:
@@ -61,9 +59,9 @@ class MyThread(QThread):
         optimized_xvec = optimizer.optimize_with_Jk(method)
 
         if self.parent.checkBox_SelComp.isChecked():
-            self.pick_up_optimum_charge(optimizer, optimized_xvec)
+            self.pick_up_optimum_charge(optimizer, optimized_xvec, method)
 
-    def pick_up_optimum_charge(self, optimizer, optimized_xvec):
+    def pick_up_optimum_charge(self, optimizer, optimized_xvec, method):
 
         #self.parent.textBrowser_optimize.clear()
 
@@ -83,11 +81,11 @@ class MyThread(QThread):
 
         for combo in combos:
             try:
-                info_dict = optimizer.optimize_one_charge(combo, method='random_search')
+                info_dict = optimizer.optimize_one_charge(combo, method)
                 optimized_combos.append(info_dict)
                 self.parent.textBrowser_optimize.append(str(info_dict))
             except:
-                self.parent.textBrowser_optimize.append(str(combo))
+                self.parent.textBrowser_optimize.append(f'Не найдено ни одного оптимума {str(combo)}')
                 continue
 
         self.parent.textBrowser_optimize.append('Расчет окончен')
