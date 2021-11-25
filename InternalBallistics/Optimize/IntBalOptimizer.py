@@ -80,9 +80,11 @@ class IntBalOptimizer(RandomScanOptimizer, RandomSearchOptimizer):
     def set_second_ground_boundary(self):
 
         self.second_ground_boundary = {
-            'Pmax': {'func': check_pmax, 'lim': self.Pmax},
-            'Eta_k': {'func': check_eta_k, 'lim': self.max_eta_k}
+            'Pmax': {'func': check_pmax, 'lim': self.Pmax}
         }
+
+    def add_eta_k_boundary(self):
+        self.second_ground_boundary['Eta_k'] = {'func': check_eta_k, 'lim': self.max_eta_k}
 
     def set_first_ground_boundary(self):
 
