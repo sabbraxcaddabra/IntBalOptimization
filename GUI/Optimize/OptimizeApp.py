@@ -63,7 +63,7 @@ class MyThread(QThread):
 
     def pick_up_optimum_charge(self, optimizer, optimized_xvec, method):
 
-        #self.parent.textBrowser_optimize.clear()
+        self.parent.textBrowser_optimize.clear()
 
         optimizer._adapt(optimized_xvec)
 
@@ -130,6 +130,18 @@ class OptimizeApp(QtWidgets.QMainWindow, optimizGUI.Ui_OptimizeWindow):   #По�
         self.butt_Start.clicked.connect(self.do_optimize)
 
         self.comboBox_MethOptimize.view().pressed.connect(self.handleItemPressed)
+        self.checkBox_regGor.stateChanged.connect(self.checkRegGor)
+
+    #Метод учёта догорания заряда
+    def checkRegGor(self):
+        if self.checkBox_regGor.isChecked():
+            self.label_coordGor.setEnabled(True)
+            self.val__coordGor.setEnabled(True)
+        else:
+            self.label_coordGor.setDisabled(True)
+            self.val__coordGor.setDisabled(True)
+
+
 
     def handleItemPressed(self, index):
         item = self.comboBox_MethOptimize.model().itemFromIndex(index)
@@ -149,6 +161,7 @@ class OptimizeApp(QtWidgets.QMainWindow, optimizGUI.Ui_OptimizeWindow):   #По�
 
 
     def do_optimize(self):
+        self.textBrowser_optimize.setText("Выполняется оптимизация...")
 
         self.thread = MyThread(self)
         self.thread.start()
@@ -208,6 +221,7 @@ class OptimizeApp(QtWidgets.QMainWindow, optimizGUI.Ui_OptimizeWindow):   #По�
         optimized_combos = optimizer.get_optimized_powders_mass(optimized_xvec, method)
 
     def out_func(self, x_vec, f, sol, params):
+
         text = f"Масса снаряда: {params.syst.q = } кг\n"
         for powd in params.charge:
             text += f"Масса пороха {powd.name}: {round(powd.omega, 4)} кг\n"
