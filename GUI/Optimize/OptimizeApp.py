@@ -51,19 +51,27 @@ class MyThread(QThread):
         max_delta = float(self.parent.val_maxDensity.text())
 
         p_max = float(self.parent.val_maxPress.text()) * 1e6
-        max_eta_k = float(self.parent.val__coordGor.text())
 
+        if self.parent.checkBox_regGor.isChecked():
+            max_eta_k = float(self.parent.val__coordGor.text())
+            optimizer = IntBalOptimizer(x_vec, params=self.int_bal_cond, Pmax=p_max,
+                                        max_eta_k=max_eta_k, delta_max=max_delta, x_lims=x_lims)
+        else:
+            optimizer = IntBalOptimizer(x_vec, params=self.int_bal_cond, Pmax=p_max,
+                                        delta_max=max_delta, x_lims=x_lims)
 
-
-        optimizer = IntBalOptimizer(x_vec, params=self.int_bal_cond, out_func=self.out_func, Pmax=p_max, max_eta_k=max_eta_k, delta_max=max_delta, x_lims=x_lims)
-        optimized_xvec = optimizer.optimize_with_Jk(method)
 
         if self.parent.checkBox_SelComp.isChecked():
+            optimizer.out_func = None
+            optimized_xvec = optimizer.optimize_with_Jk(method)
             self.pick_up_optimum_charge(optimizer, optimized_xvec, method)
+        else:
+            optimizer.out_func = self.out_func
+            optimized_xvec = optimizer.optimize_with_Jk(method)
 
     def pick_up_optimum_charge(self, optimizer, optimized_xvec, method):
 
-        self.parent.textBrowser_optimize.clear()
+        #self.parent.textBrowser_optimize.clear()
 
         optimizer._adapt(optimized_xvec)
 

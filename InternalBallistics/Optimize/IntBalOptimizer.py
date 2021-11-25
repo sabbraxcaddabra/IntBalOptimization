@@ -77,11 +77,13 @@ class IntBalOptimizer(RandomScanOptimizer, RandomSearchOptimizer):
         self.add_new_adapter('mass', adapt_powders_mass)
         self.add_new_adapter('Jk', adapt_Jk)
 
+        if self.max_eta_k:
+            self.second_ground_boundary['Eta_k'] = {'func': check_eta_k, 'lim': self.max_eta_k}
+
     def set_second_ground_boundary(self):
 
         self.second_ground_boundary = {
-            'Pmax': {'func': check_pmax, 'lim': self.Pmax},
-            'Eta_k': {'func': check_eta_k, 'lim': self.max_eta_k}
+            'Pmax': {'func': check_pmax, 'lim': self.Pmax}
         }
 
     def set_first_ground_boundary(self):
@@ -140,7 +142,7 @@ class IntBalOptimizer(RandomScanOptimizer, RandomSearchOptimizer):
     def optimize_one_charge(self, charge, method):
 
         for powd in charge:
-            powd.omega = 0.12 #(self.delta_max * self.params.syst.W0)/(0.5*len(charge))
+            powd.omega = 0.01 #(self.delta_max * self.params.syst.W0)/(0.5*len(charge))
 
         self.params.charge = charge
         self.x_vec = np.array([powd.omega for powd in charge])
