@@ -60,8 +60,39 @@ class MyThread(QThread):
         optimizer = IntBalOptimizer(x_vec, params=self.int_bal_cond, out_func=self.out_func, Pmax=p_max, max_eta_k=max_eta_k, delta_max=max_delta, x_lims=x_lims)
         optimized_xvec = optimizer.optimize_with_Jk(method)
 
-        # if self.parent.checkBox_SelComp.isChecked():
-        #     self.pick_up_optimum_charge(optimizer, optimized_xvec)
+        if self.parent.checkBox_SelComp.isChecked():
+            self.pick_up_optimum_charge(optimizer, optimized_xvec)
+
+    def pick_up_optimum_charge(self, optimizer, optimized_xvec):
+
+        #self.parent.textBrowser_optimize.clear()
+
+        optimizer._adapt(optimized_xvec)
+
+        if "Jk" in optimizer.adapters.keys():
+            optimizer.remove_adapter('Jk')
+
+        optimizer.x_lims = optimizer.x_lims[::2]
+        optimizer.out_func = None
+
+        Jk_dop_list = [powd.Jk for powd in optimizer.params.charge]
+
+        combos = optimizer.get_powder_combination(Jk_dop_list)
+
+        optimized_combos = []
+
+        for combo in combos:
+            try:
+                info_dict = optimizer.optimize_one_charge(combo, method='random_search')
+                optimized_combos.append(info_dict)
+                self.parent.textBrowser_optimize.append(str(info_dict))
+            except:
+                self.parent.textBrowser_optimize.append(str(combo))
+                continue
+
+        self.parent.textBrowser_optimize.append('Расчет окончен')
+
+
 
     def out_func(self, x_vec, f, sol, params):
         text = f"Масса снаряда: {params.syst.q = } кг\n"

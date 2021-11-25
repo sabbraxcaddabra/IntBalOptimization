@@ -140,7 +140,7 @@ class IntBalOptimizer(RandomScanOptimizer, RandomSearchOptimizer):
     def optimize_one_charge(self, charge, method):
 
         for powd in charge:
-            powd.omega = 0.01 #(self.delta_max * self.params.syst.W0)/(0.5*len(charge))
+            powd.omega = 0.1 #(self.delta_max * self.params.syst.W0)/(0.5*len(charge))
 
         self.params.charge = charge
         self.x_vec = np.array([powd.omega for powd in charge])
