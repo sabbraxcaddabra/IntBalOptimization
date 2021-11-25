@@ -140,7 +140,7 @@ class IntBalOptimizer(RandomScanOptimizer, RandomSearchOptimizer):
     def optimize_one_charge(self, charge, method):
 
         for powd in charge:
-            powd.omega = 0.01 #(self.delta_max * self.params.syst.W0)/(0.5*len(charge))
+            powd.omega = 0.12 #(self.delta_max * self.params.syst.W0)/(0.5*len(charge))
 
         self.params.charge = charge
         self.x_vec = np.array([powd.omega for powd in charge])
@@ -158,6 +158,7 @@ class IntBalOptimizer(RandomScanOptimizer, RandomSearchOptimizer):
         return info_dict
 
     def get_optimized_powders_mass(self, optimized_xvec, method='random_search'):
+        self.out_func = None
 
         self._adapt(optimized_xvec)
 
@@ -176,15 +177,20 @@ class IntBalOptimizer(RandomScanOptimizer, RandomSearchOptimizer):
         #     res = p.map(self.optimize_one_charge, combos)
 
         for combo in combos:
-            info_dict = self.optimize_one_charge(combo, method)
-            optimized_combos.append(info_dict)
+            try:
+                info_dict = self.optimize_one_charge(combo, method)
+                optimized_combos.append(info_dict)
+            except:
+                continue
 
         optimized_combos.sort(key=lambda info_dict: info_dict['target_func'], reverse=True)
 
         for combo in optimized_combos:
-            self.combo_out_func(combo)
+            print(combo)
 
-        return optimized_combos
 
         print('*'*40)
         print("Лучший вариант\n", min(optimized_combos, key=lambda info_dict: info_dict['target_func']))
+
+        return optimized_combos
+
