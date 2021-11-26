@@ -14,6 +14,52 @@ from PyQt5 import QtWidgets, Qt, QtCore, QtGui
 from PyQt5.QtWidgets import QMessageBox, QHeaderView
 
 
+class IntBalAnalysis(QtCore.QObject):
+    running = False
+    finished = QtCore.pyqtSignal()
+    result = QtCore.pyqtSignal(dict)
+
+    too_much_powder_exception = QtCore.pyqtSignal()
+    too_much_time_exception = QtCore.pyqtSignal()
+
+
+    def __init__(self, parent, int_bal_cond):
+        QtCore.QObject.__init__(self)
+        self.parent = parent
+        self.int_bal_cond = int_bal_cond
+
+    def run(self):
+        methods = {
+            'Метод Рунге-Кутты 4-го порядка':'RK4',
+            'Метод Адамса-Башфорда 5-го порядка':'AB5'
+        }
+
+        method_ = self.parent.method_comboBox.currentText()
+
+        tau = float(self.parent.step_lineEdit.text())
+
+        try:
+
+            ts, ys, p_mean, p_sn, p_kn, lk_index = solve_ib(*self.int_bal_cond.create_params_tuple(), method=methods[method_], tstep=tau)
+
+            current_result = {
+                'ts':ts,
+                'ys':ys,
+                'p_mean':p_mean,
+                'p_sn':p_sn,
+                'p_kn':p_kn,
+                'lk_index':lk_index
+            }
+            self.result.emit(current_result)
+
+        except TooMuchPowderError:
+            self.too_much_powder_exception.emit()
+
+        except TooMuchTime:
+            self.too_much_time_exception.emit()
+
+        self.finished.emit()
+
 
 # В этом классе прописываются все взаимодействия с окно АНАЛИЗА
 class AnalysisApp(QtWidgets.QMainWindow, analysisGUI.Ui_AnalysWindow):   #Поменять название Ui_Dialog
@@ -38,8 +84,6 @@ class AnalysisApp(QtWidgets.QMainWindow, analysisGUI.Ui_AnalysWindow):   #Пом
         self.result_table.verticalHeader().setSectionResizeMode(QHeaderView.Fixed)  # Запрещаем растягивать заголовки строк таблицы результатов
         self.result_table.horizontalHeader().setSectionResizeMode(QHeaderView.Fixed) # Запрещаем растягивать заголовки столбцов таблицы результатов
         self.butt_close.clicked.connect(self.close)                         # Событие кнопки "Закрыть"
-
-
 
     def first_row_text(self):
         # Если порох один, то оставляем просто Пси, без индекса
@@ -71,11 +115,6 @@ class AnalysisApp(QtWidgets.QMainWindow, analysisGUI.Ui_AnalysWindow):   #Пом
                 self.result_table.setHorizontalHeaderItem(3+i, a)
 
 
-
-
-
-
-
     def handleItemPressed(self, index):
         item = self.plot_comboBox.model().itemFromIndex(index)
         if item.text() == '<не указан>':
@@ -92,63 +131,66 @@ class AnalysisApp(QtWidgets.QMainWindow, analysisGUI.Ui_AnalysWindow):   #Пом
         # Удаляем пункт "Не указан"
         self.plot_comboBox.removeItem(0)
 
-        self.setCursor(QtGui.QCursor(QtCore.Qt.BusyCursor))
-        methods = {
-            'Метод Рунге-Кутты 4-го порядка':'RK4',
-            'Метод Адамса-Башфорда 5-го порядка':'AB5'
-        }
+        self.thread = QtCore.QThread()
+        self.analysis = IntBalAnalysis(self, self.int_bal_cond)
+        self.analysis.moveToThread(self.thread)
 
-        method_ = self.method_comboBox.currentText()
+        self.analysis.result.connect(self.get_result)
+        self.analysis.too_much_powder_exception.connect(self.raise_error_window_too_much_powder)
+        self.analysis.too_much_time_exception.connect(self.raise_error_window_too_much_time)
 
-        tau = float(self.step_lineEdit.text())
+        self.thread.started.connect(self.analysis.run)
 
-        try:
+        self.analysis.finished.connect(self.plot_)
+        self.analysis.finished.connect(self.fill_average_pressure_and_gun_speed)
+        self.analysis.finished.connect(self._fill_result_table)
 
-            ts, ys, p_mean, p_sn, p_kn, lk_index = solve_ib(*self.int_bal_cond.create_params_tuple(), method=methods[method_], tstep=tau)
-
-            self.lineEdit_GunSpeed.setText(str(round(ys[0][-1], 1)))
-            self.lineEdit_AverPress.setText(str(round(max(p_mean)*1e-6, 2)))
-
-            self.current_result = {
-                'ts':ts,
-                'ys':ys,
-                'p_mean':p_mean,
-                'p_sn':p_sn,
-                'p_kn':p_kn,
-                'lk_index':lk_index
-            }
-
-            self._fill_result_table()
-            self.plot_()
-            self.plot_comboBox.setCurrentIndex(0)
-            self.setCursor(QtGui.QCursor(QtCore.Qt.ArrowCursor))
-
-        except TooMuchPowderError:
-            errorTooMuchPowd = QMessageBox()
-            errorTooMuchPowd.setWindowTitle("Ошибка")
-            errorTooMuchPowd.setText("Слишком много пороха!")
-            errorTooMuchPowd.setIcon(QMessageBox.Critical)
-            errorTooMuchPowd.setStandardButtons(QMessageBox.Cancel)
-
-            buttCancel = errorTooMuchPowd.button(QMessageBox.Cancel)
-            buttCancel.setText("Отмена")
-
-            errorTooMuchPowd.exec()
-
-        except TooMuchTime:
-            errorTooMuchTime = QMessageBox()
-            errorTooMuchTime.setWindowTitle("Ошибка")
-            errorTooMuchTime.setText("Превышено время выстрела (1с)!")
-            errorTooMuchTime.setIcon(QMessageBox.Critical)
-            errorTooMuchTime.setStandardButtons(QMessageBox.Cancel)
-
-            buttCancel = errorTooMuchTime.button(QMessageBox.Cancel)
-            buttCancel.setText("Отмена")
-
-            errorTooMuchTime.exec()
+        self.analysis.finished.connect(self.thread.quit)
+        self.analysis.finished.connect(self.analysis.deleteLater)
+        self.thread.finished.connect(self.thread.deleteLater)
+        # запустим поток
+        self.thread.start()
 
 
+    @QtCore.pyqtSlot()
+    def fill_average_pressure_and_gun_speed(self):
+        if self.current_result:
+            self.lineEdit_GunSpeed.setText(f'{self.current_result["ys"][0][-1]:.5g}')
+            self.lineEdit_AverPress.setText(f'{max(self.current_result["p_mean"]) * 1e-6:.5g}')
+        else:
+            pass
 
+    @QtCore.pyqtSlot(dict)
+    def get_result(self, result_dict):
+        self.current_result = result_dict
+
+    @QtCore.pyqtSlot()
+    def raise_error_window_too_much_powder(self):
+        errorTooMuchPowd = QMessageBox()
+        errorTooMuchPowd.setWindowTitle("Ошибка")
+        errorTooMuchPowd.setText("Слишком много пороха!")
+        errorTooMuchPowd.setIcon(QMessageBox.Critical)
+        errorTooMuchPowd.setStandardButtons(QMessageBox.Cancel)
+
+        buttCancel = errorTooMuchPowd.button(QMessageBox.Cancel)
+        buttCancel.setText("Отмена")
+
+        errorTooMuchPowd.exec()
+
+    @QtCore.pyqtSlot()
+    def raise_error_window_too_much_time(self):
+        errorTooMuchTime = QMessageBox()
+        errorTooMuchTime.setWindowTitle("Ошибка")
+        errorTooMuchTime.setText("Превышено время выстрела (1с)!")
+        errorTooMuchTime.setIcon(QMessageBox.Critical)
+        errorTooMuchTime.setStandardButtons(QMessageBox.Cancel)
+
+        buttCancel = errorTooMuchTime.button(QMessageBox.Cancel)
+        buttCancel.setText("Отмена")
+
+        errorTooMuchTime.exec()
+
+    @QtCore.pyqtSlot()
     def plot_(self, grafics_dict_key='Среднебаллистическое давление'):
         plot_dict = {
             'Среднебаллистическое давление': (self._pressure_graphics, ('p_mean', 'Среднебаллистическое давление')),
@@ -211,44 +253,49 @@ class AnalysisApp(QtWidgets.QMainWindow, analysisGUI.Ui_AnalysWindow):   #Пом
         ax.grid()
 
         self.canvas.draw()
+
+    @QtCore.pyqtSlot()
     def _fill_result_table(self):
-        # Очищаем старые данные
-        valRow = self.result_table.rowCount()
+        if self.current_result:
+            # Очищаем старые данные
+            valRow = self.result_table.rowCount()
 
-        if valRow > 1:
-            for i in range(valRow, 0 , -1):
-                self.result_table.removeRow(i)
-        """
-        Заполнение таблицы результатов
-        :return:
-        """
-        self.result_table.show()
-        for timestep in range(len(self.current_result['ts'])):
-            self.result_table.insertRow(timestep+1)
-            a = Qt.QTableWidgetItem(str(round(self.current_result['ts'][timestep]*1e3, 2)))
-            a.setTextAlignment(QtCore.Qt.AlignCenter)
-            a.setFlags(QtCore.Qt.ItemIsSelectable | QtCore.Qt.ItemIsEnabled)
-            self.result_table.setItem(timestep, 0, a)
-            for index, y in enumerate(self.current_result['ys'], start=1):
-                a = Qt.QTableWidgetItem(str(round(y[timestep], 2)))
-                a.setTextAlignment(QtCore.Qt.AlignCenter)
-                a.setFlags(QtCore.Qt.ItemIsSelectable | QtCore.Qt.ItemIsEnabled)  # Отключаем возможность редакт. ячейку
-                self.result_table.setItem(timestep, index, a)
-            p_map = map(self.current_result.get, ('p_mean', 'p_sn', 'p_kn'))
-
-            for i, p in enumerate(p_map, start=index+1):
-                a = Qt.QTableWidgetItem(str(round(p[timestep]*1e-6, 2)))
+            if valRow > 1:
+                for i in range(valRow, 0 , -1):
+                    self.result_table.removeRow(i)
+            """
+            Заполнение таблицы результатов
+            :return:
+            """
+            self.result_table.show()
+            for timestep in range(len(self.current_result['ts'])):
+                self.result_table.insertRow(timestep+1)
+                a = Qt.QTableWidgetItem(str(round(self.current_result['ts'][timestep]*1e3, 2)))
                 a.setTextAlignment(QtCore.Qt.AlignCenter)
                 a.setFlags(QtCore.Qt.ItemIsSelectable | QtCore.Qt.ItemIsEnabled)
-                self.result_table.setItem(timestep, i, a)
-        # Удаляем лишнюю строку
-        valRow = self.result_table.rowCount()
-        self.result_table.removeRow(valRow-1)
+                self.result_table.setItem(timestep, 0, a)
+                for index, y in enumerate(self.current_result['ys'], start=1):
+                    a = Qt.QTableWidgetItem(str(round(y[timestep], 2)))
+                    a.setTextAlignment(QtCore.Qt.AlignCenter)
+                    a.setFlags(QtCore.Qt.ItemIsSelectable | QtCore.Qt.ItemIsEnabled)  # Отключаем возможность редакт. ячейку
+                    self.result_table.setItem(timestep, index, a)
+                p_map = map(self.current_result.get, ('p_mean', 'p_sn', 'p_kn'))
 
-        # Настраиваем ширину заголовков
-        # Узнаем текущее количество колонок
-        ColVal = self.result_table.columnCount()
-        header = self.result_table.horizontalHeader()
+                for i, p in enumerate(p_map, start=index+1):
+                    a = Qt.QTableWidgetItem(str(round(p[timestep]*1e-6, 2)))
+                    a.setTextAlignment(QtCore.Qt.AlignCenter)
+                    a.setFlags(QtCore.Qt.ItemIsSelectable | QtCore.Qt.ItemIsEnabled)
+                    self.result_table.setItem(timestep, i, a)
+            # Удаляем лишнюю строку
+            valRow = self.result_table.rowCount()
+            self.result_table.removeRow(valRow-1)
 
-        for col in range(ColVal):
-            header.setSectionResizeMode(col, QHeaderView.Stretch)
+            # Настраиваем ширину заголовков
+            # Узнаем текущее количество колонок
+            ColVal = self.result_table.columnCount()
+            header = self.result_table.horizontalHeader()
+
+            for col in range(ColVal):
+                header.setSectionResizeMode(col, QHeaderView.Stretch)
+        else:
+            pass
