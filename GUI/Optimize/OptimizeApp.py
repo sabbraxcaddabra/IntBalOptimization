@@ -1,4 +1,5 @@
 import numpy as np
+from math import floor
 
 from GUI.Optimize import optimizGUI                      #конвертированный в .py фал дизайна окна анализа
 from PyQt5 import QtWidgets, Qt, QtCore, QtGui
@@ -15,6 +16,8 @@ class Optimization(QtCore.QObject):
     running = False
     finished = QtCore.pyqtSignal()
     new_info = QtCore.pyqtSignal(str)
+    progress_bar_updater = QtCore.pyqtSignal(int)
+    counter = 0
 
     def __init__(self, parent):
         QtCore.QObject.__init__(self)
@@ -90,8 +93,10 @@ class Optimization(QtCore.QObject):
         combos = optimizer.get_powder_combination(Jk_dop_list)
 
         optimized_combos = []
+        n_combos = len(combos)
+        sizer = floor(100/len(combos))
 
-        for combo in combos:
+        for num, combo in enumerate(combos):
             try:
                 info_dict = optimizer.optimize_one_charge(combo, method)
                 optimized_combos.append(info_dict)
@@ -100,7 +105,9 @@ class Optimization(QtCore.QObject):
                 self.new_info.emit(f'Не найдено ни одного оптимума {str(combo)}')
                 continue
 
-        self.new_info.emit('Расчет окончен')
+            self.progress_bar_updater.emit(sizer * num)
+
+        #self.new_info.emit('Расчет окончен')
 
     def out_func(self, x_vec, f, sol, params):
         text = f"Масса снаряда: {params.syst.q = } кг\n"
@@ -113,10 +120,10 @@ class Optimization(QtCore.QObject):
         text += f"Максимальное давление на дно канала ствола: {round(sol[2] * 1e-6, 2)} МПа\n"
         text += f"Координата полного сгорания порохового заряда {round(sol[3], 4)} м\n"
         text += "*" * 30 + '\n'
-
+        self.counter += 1
         self.new_info.emit(text)
+        self.progress_bar_updater.emit(self.counter)
         QtCore.QThread.msleep(100)
-        #
 
 
 # В этом классе прописываются все взаимодействия с окном ОПТИМИЗАЦИИ
@@ -177,14 +184,43 @@ class OptimizeApp(QtWidgets.QMainWindow, optimizGUI.Ui_OptimizeWindow):   #По�
         self.browserHandler.moveToThread(self.thread)
         # после чего подключим все сигналы и слоты
         self.browserHandler.new_info.connect(self.add_new_text)
+        self.browserHandler.progress_bar_updater.connect(self.update_progress_bar)
+        self.browserHandler.progress_bar_updater.connect(self.update_progress_bar_select_components)
         # подключим сигнал старта потока к методу run у объекта, который должен выполнять код в другом потоке
         self.thread.started.connect(self.browserHandler.run)
+        # self.browserHandler.finished.connect(lambda: self.progressBar_procOptimize.setValue(100))
+        # self.browserHandler.finished.connect(lambda: time.sleep(0.5))
+        # self.browserHandler.finished.connect(lambda: self.progressBar_procOptimize.hide())
+        # self.browserHandler.finished.connect(lambda: self.label_procOptimize.hide())
+        self.browserHandler.finished.connect(self.hide_progress_bar)
         self.browserHandler.finished.connect(self.thread.quit)
         self.browserHandler.finished.connect(self.browserHandler.deleteLater)
+
         self.thread.finished.connect(self.thread.deleteLater)
         # запустим поток
         self.thread.start()
 
+
+    @QtCore.pyqtSlot()
+    def hide_progress_bar(self):
+        self.progressBar_procOptimize.setValue(100)
+        time.sleep(0.5)
+        self.progressBar_procOptimize.setValue(0)
+        self.progressBar_procOptimize.hide()
+        self.label_procOptimize.hide()
+
+
     @QtCore.pyqtSlot(str)
     def add_new_text(self, string):
         self.textBrowser_optimize.append(string)
+
+    @QtCore.pyqtSlot(int)
+    def update_progress_bar(self, counter):
+        tmp = self.progressBar_procOptimize.value()
+        if tmp <= 90:
+            counter = tmp + np.random.randint(3, 10)
+            self.progressBar_procOptimize.setValue(counter)
+
+    @QtCore.pyqtSlot(int)
+    def update_progress_bar_select_components(self, counter):
+        self.progressBar_procOptimize.setValue(counter)
