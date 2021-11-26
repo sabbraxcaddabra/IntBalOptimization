@@ -123,14 +123,6 @@ class AnalysisApp(QtWidgets.QMainWindow, analysisGUI.Ui_AnalysWindow):   #Пом
             self.plot_(item.text())
 
     def do_raschet(self):
-        # Добавить проверку введенных данных!!!!!
-
-        # Делаем видимым вкладку график
-        self.plots.setEnabled(True)
-        self.plot_comboBox.setEnabled(True)
-        # Удаляем пункт "Не указан"
-        self.plot_comboBox.removeItem(0)
-
         self.thread = QtCore.QThread()
         self.analysis = IntBalAnalysis(self, self.int_bal_cond)
         self.analysis.moveToThread(self.thread)
@@ -144,6 +136,7 @@ class AnalysisApp(QtWidgets.QMainWindow, analysisGUI.Ui_AnalysWindow):   #Пом
         self.analysis.finished.connect(self.plot_)
         self.analysis.finished.connect(self.fill_average_pressure_and_gun_speed)
         self.analysis.finished.connect(self._fill_result_table)
+        self.analysis.finished.connect(self.enable_plot)
 
         self.analysis.finished.connect(self.thread.quit)
         self.analysis.finished.connect(self.analysis.deleteLater)
@@ -151,6 +144,14 @@ class AnalysisApp(QtWidgets.QMainWindow, analysisGUI.Ui_AnalysWindow):   #Пом
         # запустим поток
         self.thread.start()
 
+    @QtCore.pyqtSlot()
+    def enable_plot(self):
+
+        # Делаем видимым вкладку график
+        self.plots.setEnabled(True)
+        self.plot_comboBox.setEnabled(True)
+        # Удаляем пункт "Не указан"
+        self.plot_comboBox.removeItem(0)
 
     @QtCore.pyqtSlot()
     def fill_average_pressure_and_gun_speed(self):
@@ -197,7 +198,6 @@ class AnalysisApp(QtWidgets.QMainWindow, analysisGUI.Ui_AnalysWindow):   #Пом
             'Давление на дно снаряда': (self._pressure_graphics, ('p_sn', 'Давление на дно снаряда')),
             'Давление на дно канала ствола': (self._pressure_graphics, ('p_kn', 'Давление на дно канала ствола')),
             'Скорость снаряда': (self._velocity_graphic, ('Скорость снаряда',))
-
         }
         if self.current_result:
             plot_dict[grafics_dict_key][0](*plot_dict[grafics_dict_key][1])
