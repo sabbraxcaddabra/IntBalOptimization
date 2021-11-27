@@ -4,7 +4,7 @@ import sys
 from PyQt5 import QtWidgets, Qt, QtCore, QtGui
 from PyQt5.QtCore import QDir
 from PyQt5.QtGui import QFont
-from PyQt5.QtWidgets import QMessageBox, QFileDialog, QHeaderView
+from PyQt5.QtWidgets import QMessageBox, QFileDialog, QHeaderView, QApplication
 from InternalBallistics.IntBalClasses import ArtSystem, Powder, IntBalParams
 from GUI.Analyze.AnalysisApp import AnalysisApp
 from GUI.Optimize.OptimizeApp import OptimizeApp
@@ -24,14 +24,16 @@ class InitApp(QtWidgets.QMainWindow, initGUI.Ui_MainWindow):
         self.setupUi(self)
 
 
+
+
         #self.tableInitArtSys.verticalHeader().setSectionResizeMode(QHeaderView.Fixed)   # Запрещаем растягивать заголовки строк таблицы арт. систем
 
         # Растягиваем колонки и строки табл. арт. систем
-        self.tableInitArtSys.verticalHeader().setSectionResizeMode(QHeaderView.Stretch)
-        self.tableInitArtSys.horizontalHeader().setSectionResizeMode(QHeaderView.Stretch)
+        # self.tableInitArtSys.verticalHeader().setSectionResizeMode(QHeaderView.Stretch)
+        # self.tableInitArtSys.horizontalHeader().setSectionResizeMode(QHeaderView.Stretch)
 
-        #self.tableInitPowders.verticalHeader().setSectionResizeMode(QHeaderView.Fixed)  # Запрещаем растягивать заголовки строк таблицы порохов
-        self.tableInitPowders.verticalHeader().setSectionResizeMode(QHeaderView.Stretch)
+        # #self.tableInitPowders.verticalHeader().setSectionResizeMode(QHeaderView.Fixed)  # Запрещаем растягивать заголовки строк таблицы порохов
+        # self.tableInitPowders.verticalHeader().setSectionResizeMode(QHeaderView.Stretch)
 
         #self.tableInitPowders.horizontalHeader().setSectionResizeMode(QHeaderView.Fixed) # Запрещаем растягивать заголовки столбцов таблицы порохов
 
@@ -49,12 +51,145 @@ class InitApp(QtWidgets.QMainWindow, initGUI.Ui_MainWindow):
         self.butt_synth.clicked.connect(self.StartOptimize)                 # Вызываем окно оптимизации
         self.combo_regIgnit.activated.connect(self.comboReg)                # Обрабатываем выбор комбобокса
 
+        self.FillTable()
+
+
+    # Метод заполняет таблицы порохов и арт. системы
+
+    def FillTable(self):
+        # Таблица порохов
+        self.tableInitPowders.setRowCount(17)
+
+        text = "Марка пороха:"
+        a = Qt.QTableWidgetItem(text)
+        self.tableInitPowders.setVerticalHeaderItem(0, a)
+
+        text = "ω, кг:"
+        a = Qt.QTableWidgetItem(text)
+        self.tableInitPowders.setVerticalHeaderItem(1, a)
+
+        text = "δ, кг/м³:"
+        a = Qt.QTableWidgetItem(text)
+        self.tableInitPowders.setVerticalHeaderItem(2, a)
+
+        text = "f, Дж/кг:"
+        a = Qt.QTableWidgetItem(text)
+        self.tableInitPowders.setVerticalHeaderItem(3, a)
+
+        text = "T₁, К:"
+        a = Qt.QTableWidgetItem(text)
+        self.tableInitPowders.setVerticalHeaderItem(4, a)
+
+        text = "Iк, Па⋅с:"
+        a = Qt.QTableWidgetItem(text)
+        self.tableInitPowders.setVerticalHeaderItem(5, a)
+
+        text = "α, м³/кг:"
+        a = Qt.QTableWidgetItem(text)
+        self.tableInitPowders.setVerticalHeaderItem(6, a)
+
+        text = "θ:"
+        a = Qt.QTableWidgetItem(text)
+        self.tableInitPowders.setVerticalHeaderItem(7, a)
+
+        text = "Zк:"
+        a = Qt.QTableWidgetItem(text)
+        self.tableInitPowders.setVerticalHeaderItem(8, a)
+
+        text = "Κ₁:"
+        a = Qt.QTableWidgetItem(text)
+        self.tableInitPowders.setVerticalHeaderItem(9, a)
+
+        text = "λ₁:"
+        a = Qt.QTableWidgetItem(text)
+        self.tableInitPowders.setVerticalHeaderItem(10, a)
+
+        text = "μ₁:"
+        a = Qt.QTableWidgetItem(text)
+        self.tableInitPowders.setVerticalHeaderItem(11, a)
+
+        text = "Κ₂:"
+        a = Qt.QTableWidgetItem(text)
+        self.tableInitPowders.setVerticalHeaderItem(12, a)
+
+        text = "λ₂:"
+        a = Qt.QTableWidgetItem(text)
+        self.tableInitPowders.setVerticalHeaderItem(13, a)
+
+        text = "μ₂:"
+        a = Qt.QTableWidgetItem(text)
+        self.tableInitPowders.setVerticalHeaderItem(14, a)
+
+        text = "γIк"
+        a = Qt.QTableWidgetItem(text)
+        self.tableInitPowders.setVerticalHeaderItem(15, a)
+
+        text = "γf"
+        a = Qt.QTableWidgetItem(text)
+        self.tableInitPowders.setVerticalHeaderItem(16, a)
+        # Настройка заголовков
+        self.tableInitPowders.verticalHeader().setFont(QFont('MS Shell Dlg 2', 10))
+        self.tableInitPowders.verticalHeader().setDefaultAlignment(QtCore.Qt.AlignCenter)
+        self.tableInitPowders.verticalHeader().setSectionResizeMode(QHeaderView.Stretch)
+
+        # Таблица арт систем
+
+        self.tableInitArtSys.setRowCount(9)
+        text = "Орудие:"
+        a = Qt.QTableWidgetItem(text)
+        self.tableInitArtSys.setVerticalHeaderItem(0, a)
+
+        text = "Калибр d, м:"
+        a = Qt.QTableWidgetItem(text)
+        self.tableInitArtSys.setVerticalHeaderItem(1, a)
+
+        text = "Масса снаряда q, кг:"
+        a = Qt.QTableWidgetItem(text)
+        self.tableInitArtSys.setVerticalHeaderItem(2, a)
+
+        text = "Площадь сечения канала ствола S, м²:"
+        a = Qt.QTableWidgetItem(text)
+        self.tableInitArtSys.setVerticalHeaderItem(3, a)
+
+        text = "Объём зарядной каморы W₀, м³:"
+        a = Qt.QTableWidgetItem(text)
+        self.tableInitArtSys.setVerticalHeaderItem(4, a)
+
+        text = "Путь снаряда в канале ствола lд, м:"
+        a = Qt.QTableWidgetItem(text)
+        self.tableInitArtSys.setVerticalHeaderItem(5, a)
+
+        text = "Длина зарядной каморы lкм, м:"
+        a = Qt.QTableWidgetItem(text)
+        self.tableInitArtSys.setVerticalHeaderItem(6, a)
+
+        text = "Привед. длина зарядной каморы l₀, м:"
+        a = Qt.QTableWidgetItem(text)
+        self.tableInitArtSys.setVerticalHeaderItem(7, a)
+
+        text = "Коэффициент Слухоцкого kφ:"
+        a = Qt.QTableWidgetItem(text)
+        self.tableInitArtSys.setVerticalHeaderItem(8, a)
+
+        # Настройка заголовков
+        self.tableInitArtSys.verticalHeader().setFont(QFont('MS Shell Dlg 2', 10))
+        #self.tableInitArtSys.verticalHeader().setDefaultAlignment(QtCore.Qt.AlignCenter)
+        self.tableInitArtSys.verticalHeader().setSectionResizeMode(QHeaderView.Stretch)
+        self.tableInitArtSys.horizontalHeader().setSectionResizeMode(QHeaderView.Stretch)
+
+
+
+
+
+
+
     # Метод масштабирует шрифты, в зависимости от разрешения
     def resizeEvent(self, event):
         width = self.width()
         height = self.height()
 
         print(width, height)
+
         #
         # sizefont = round(11 * (height / 565))
         # print(sizefont)
@@ -600,7 +735,10 @@ class ArtSysApp(QtWidgets.QMainWindow, artsysGUI.Ui_ArtSysWindow):
 
 #Функция вызывает окно исходных данных
 def InitWin():
+    #QApplication.setAttribute(QtCore.Qt.AA_EnableHighDpiScaling)
     app = QtWidgets.QApplication(sys.argv)
+    app.setAttribute(QtCore.Qt.AA_EnableHighDpiScaling)
+
     app.setWindowIcon(QtGui.QIcon("E3.ico"))
 
     InitWindow = InitApp()

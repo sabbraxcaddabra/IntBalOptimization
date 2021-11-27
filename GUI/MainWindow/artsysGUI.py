@@ -14,7 +14,7 @@ from PyQt5 import QtCore, QtGui, QtWidgets
 class Ui_ArtSysWindow(object):
     def setupUi(self, ArtSysWindow):
         ArtSysWindow.setObjectName("ArtSysWindow")
-        ArtSysWindow.resize(719, 520)
+        ArtSysWindow.resize(748, 520)
         self.centralwidget = QtWidgets.QWidget(ArtSysWindow)
         self.centralwidget.setObjectName("centralwidget")
         self.verticalLayout = QtWidgets.QVBoxLayout(self.centralwidget)

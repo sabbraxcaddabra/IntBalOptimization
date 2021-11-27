@@ -2,7 +2,7 @@ import matplotlib.pyplot as plt
 
 from InternalBallistics.ErrorClasses import *
 from GUI.Analyze import analysisGUI                      #конвертированный в .py фал дизайна окна анализа
-from PyQt5.QtGui import QFont
+from PyQt5.QtGui import QFont, QCursor
 
 from InternalBallistics.Analyze.SolveIntBal import solve_ib
 
@@ -11,7 +11,7 @@ from matplotlib.backends.backend_qt5agg import NavigationToolbar2QT as Navigatio
 
 from PyQt5 import QtWidgets, Qt, QtCore, QtGui
 
-from PyQt5.QtWidgets import QMessageBox, QHeaderView
+from PyQt5.QtWidgets import QMessageBox, QHeaderView, QWidget
 
 
 class IntBalAnalysis(QtCore.QObject):
@@ -76,14 +76,54 @@ class AnalysisApp(QtWidgets.QMainWindow, analysisGUI.Ui_AnalysWindow):   #Пом
         self.plot_Layout.addWidget(self.canvas)
         self.current_result = None
         # Скрываем таблицу
-        self.result_table.hide()
+        #self.result_table.hide()
+        self.result_table.horizontalHeader().setSectionResizeMode(QHeaderView.Stretch)
+
+        # Блокируем вкладку графика
+        self.ResWindow.setTabEnabled(1, False)
         # События для кнопок
         self.butt_raschet.clicked.connect(self.do_raschet)
         self.plot_comboBox.view().pressed.connect(self.handleItemPressed)
 
-        self.result_table.verticalHeader().setSectionResizeMode(QHeaderView.Fixed)  # Запрещаем растягивать заголовки строк таблицы результатов
-        self.result_table.horizontalHeader().setSectionResizeMode(QHeaderView.Fixed) # Запрещаем растягивать заголовки столбцов таблицы результатов
         self.butt_close.clicked.connect(self.close)                         # Событие кнопки "Закрыть"
+
+
+    # Метод проверяет введённые данные
+    def CheckValue(self):
+
+        # В случае нахождения будем вызывать диалоговое окно и передавать в него текст ошибки
+        def ErrorDialog(textError):
+            errorInit = QMessageBox()
+            errorInit.setWindowTitle("Ошибка!")
+            errorInit.setText(textError)
+            errorInit.setIcon(QMessageBox.Critical)
+            errorInit.setStandardButtons(QMessageBox.Cancel)
+            buttCancel = errorInit.button(QMessageBox.Cancel)
+            buttCancel.setText("Отмена")
+            errorInit.exec()
+
+        # Проверяем параметры заряжания
+        Step = self.step_lineEdit.text()
+
+        if not Step:
+            errorText = "Укажите шаг расчёта!"
+            ErrorDialog(errorText)
+            return False
+
+        # Меняем запятую на точку
+        Step = Step.replace(",", ".")
+        self.step_lineEdit.setText(Step)
+
+        # Пытаемся значение ячейки преобразовать во float, если не получается - выводим диалоговое с ошибкой
+        try:
+            Step = float(Step)
+        except ValueError:
+            errorText = "Шаг расчёта задан некорректно!"
+            ErrorDialog(errorText)
+            return False
+
+        # Если всё чики-пуки - возвращаем True
+        return True
 
     def first_row_text(self):
         # Если порох один, то оставляем просто Пси, без индекса
@@ -123,6 +163,22 @@ class AnalysisApp(QtWidgets.QMainWindow, analysisGUI.Ui_AnalysWindow):   #Пом
             self.plot_(item.text())
 
     def do_raschet(self):
+        # Делаем проверку введённого значения шага расчёта
+        if not self.CheckValue():
+            return False
+        # На время расчёт меняем курсор на задумчивый
+        self.ResWindow.setCursor(QtCore.Qt.BusyCursor)
+
+
+
+
+        # Перед новым расчётом скрываем старый листинг, блокируем вкладку графика
+        ##self.result_table.hide()
+        self.result_table.clearContents()
+        self.plots.setDisabled(True)
+        self.ResWindow.setTabEnabled(1, False)
+
+
         self.thread = QtCore.QThread()
         self.analysis = IntBalAnalysis(self, self.int_bal_cond)
         self.analysis.moveToThread(self.thread)
@@ -148,10 +204,11 @@ class AnalysisApp(QtWidgets.QMainWindow, analysisGUI.Ui_AnalysWindow):   #Пом
     def enable_plot(self):
 
         # Делаем видимым вкладку график
+        self.ResWindow.setTabEnabled(1, True)
         self.plots.setEnabled(True)
         self.plot_comboBox.setEnabled(True)
         # Удаляем пункт "Не указан"
-        self.plot_comboBox.removeItem(0)
+        self.plot_comboBox.removeItem(self.plot_comboBox.findText('<не указан>'))
 
     @QtCore.pyqtSlot()
     def fill_average_pressure_and_gun_speed(self):
@@ -257,8 +314,14 @@ class AnalysisApp(QtWidgets.QMainWindow, analysisGUI.Ui_AnalysWindow):   #Пом
     @QtCore.pyqtSlot()
     def _fill_result_table(self):
         if self.current_result:
+
+
+            #Вставляем строку если расчёт первый
+            if self.result_table.rowCount() == 0:
+                self.result_table.setRowCount(1)
             # Очищаем старые данные
             valRow = self.result_table.rowCount()
+
 
             if valRow > 1:
                 for i in range(valRow, 0 , -1):
@@ -267,7 +330,8 @@ class AnalysisApp(QtWidgets.QMainWindow, analysisGUI.Ui_AnalysWindow):   #Пом
             Заполнение таблицы результатов
             :return:
             """
-            self.result_table.show()
+
+
             for timestep in range(len(self.current_result['ts'])):
                 self.result_table.insertRow(timestep+1)
                 a = Qt.QTableWidgetItem(str(round(self.current_result['ts'][timestep]*1e3, 2)))
@@ -297,5 +361,7 @@ class AnalysisApp(QtWidgets.QMainWindow, analysisGUI.Ui_AnalysWindow):   #Пом
 
             for col in range(ColVal):
                 header.setSectionResizeMode(col, QHeaderView.Stretch)
+            # Меняем курсор обратно
+            self.ResWindow.setCursor(QtCore.Qt.ArrowCursor)
         else:
             pass

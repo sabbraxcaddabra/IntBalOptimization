@@ -1,6 +1,8 @@
 import numpy as np
 from math import floor
 
+from PyQt5.QtWidgets import QMessageBox
+
 from GUI.Optimize import optimizGUI                      #конвертированный в .py фал дизайна окна анализа
 from PyQt5 import QtWidgets, Qt, QtCore, QtGui
 from PyQt5.QtCore import QThread
@@ -146,9 +148,11 @@ class OptimizeApp(QtWidgets.QMainWindow, optimizGUI.Ui_OptimizeWindow):   #По�
     #Метод учёта догорания заряда
     def checkRegGor(self):
         if self.checkBox_regGor.isChecked():
+            self.val__coordGor.clear()
             self.label_coordGor.setEnabled(True)
             self.val__coordGor.setEnabled(True)
         else:
+            self.val__coordGor.clear()
             self.label_coordGor.setDisabled(True)
             self.val__coordGor.setDisabled(True)
 
@@ -161,15 +165,117 @@ class OptimizeApp(QtWidgets.QMainWindow, optimizGUI.Ui_OptimizeWindow):   #По�
             self.label_FinitImpuls.setEnabled(True)
             self.val_massPowd.setEnabled(True)
             self.val_FinitImpuls.setEnabled(True)
+
         if item.row() == 0:
             self.label_massPowd.setDisabled(True)
             self.label_FinitImpuls.setDisabled(True)
             self.val_massPowd.setDisabled(True)
             self.val_FinitImpuls.setDisabled(True)
+            self.val_massPowd.clear()
+            self.val_FinitImpuls.clear()
+
+    # Метод выполняет проверку всех введённых данных
+    def CheckValue(self):
+
+        # В случае нахождения будем вызывать диалоговое окно и передавать в него текст ошибки
+        def ErrorDialog(textError):
+            errorInit = QMessageBox()
+            errorInit.setWindowTitle("Ошибка!")
+            errorInit.setText(textError)
+            errorInit.setIcon(QMessageBox.Critical)
+            errorInit.setStandardButtons(QMessageBox.Cancel)
+            buttCancel = errorInit.button(QMessageBox.Cancel)
+            buttCancel.setText("Отмена")
+            errorInit.exec()
+
+
+        # Проверяем данные ограничений 1-го рода:
+
+        maxDensity = self.val_maxDensity.text()
+        if not maxDensity:
+            errorText = "Укажите все ограничения 1-го рода!"
+            ErrorDialog(errorText)
+            return False
+        # Меняем запятую на точку
+        maxDensity = maxDensity.replace(",", ".")
+        self.val_maxDensity.setText(maxDensity)
+
+        # Пытаемся значение ячейки преобразовать во float, если не получается - выводим диалоговое с ошибкой
+        try:
+            maxDensity = float(maxDensity)
+        except ValueError:
+            errorText = "Ограничения 1-го рода заданны некорректно!"
+            ErrorDialog(errorText)
+            return False
+
+        if self.comboBox_MethOptimize.currentIndex() == 1:
+            massPowd = self.val_massPowd.text()
+            FinitImpuls = self.val_FinitImpuls.text()
+            if not massPowd or not FinitImpuls:
+                errorText = "Укажите все ограничения 1-го рода!"
+                ErrorDialog(errorText)
+                return False
+            # Меняем запятую на точку
+            massPowd = massPowd.replace(",", ".")
+            self.val_massPowd.setText(massPowd)
+
+            FinitImpuls = FinitImpuls.replace(",", ".")
+            self.val_FinitImpuls.setText(FinitImpuls)
+
+            # Пытаемся значение ячейки преобразовать во float, если не получается - выводим диалоговое с ошибкой
+            try:
+                massPowd = float(massPowd)
+                FinitImpuls = float(FinitImpuls)
+            except ValueError:
+                errorText = "Ограничения 1-го рода заданны некорректно!"
+                ErrorDialog(errorText)
+                return False
+
+
+
+        # Проверяем данные ограничений 2-го рода:
+
+        maxPress = self.val_maxPress.text()
+        if not maxPress:
+            errorText = "Укажите все ограничения 2-го рода!"
+            ErrorDialog(errorText)
+            return False
+        # Меняем запятую на точку
+        maxPress = maxPress.replace(",", ".")
+        self.val_maxPress.setText(maxPress)
+        # Пытаемся значение ячейки преобразовать во float, если не получается - выводим диалоговое с ошибкой
+        try:
+            maxPress = float(maxPress)
+        except ValueError:
+            errorText = "Ограничения 2-го рода заданны некорректно!"
+            ErrorDialog(errorText)
+            return False
+
+        if self.checkBox_regGor.isChecked():
+            coordGor = self.val__coordGor.text()
+            if not coordGor:
+                errorText = "Укажите все ограничения 2-го рода!"
+                ErrorDialog(errorText)
+                return False
+            # Меняем запятую на точку
+            coordGor = coordGor.replace(",", ".")
+            self.val__coordGor.setText(coordGor)
+            # Пытаемся значение ячейки преобразовать во float, если не получается - выводим диалоговое с ошибкой
+            try:
+                coordGor = float(coordGor)
+            except ValueError:
+                errorText = "Ограничения 2-го рода заданны некорректно!"
+                ErrorDialog(errorText)
+                return False
+
+        return True
 
 
 
     def do_optimize(self):
+        # Проверка данных
+        if not self.CheckValue():
+            return False
 
         # Показываем прогресс бар и лейбл на время расчёта
         self.label_procOptimize.show()
@@ -218,8 +324,8 @@ class OptimizeApp(QtWidgets.QMainWindow, optimizGUI.Ui_OptimizeWindow):   #По�
     def update_progress_bar(self, counter):
         tmp = self.progressBar_procOptimize.value()
         if tmp <= 90:
-            counter = tmp + np.random.randint(3, 10)
-            self.progressBar_procOptimize.setValue(counter)
+            ProgrVal = tmp + np.random.randint(3, 6)*counter
+            self.progressBar_procOptimize.setValue(ProgrVal)
 
     @QtCore.pyqtSlot(int)
     def update_progress_bar_select_components(self, counter):

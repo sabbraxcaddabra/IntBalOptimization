@@ -14,7 +14,7 @@ from PyQt5 import QtCore, QtGui, QtWidgets
 class Ui_PowdersWindow(object):
     def setupUi(self, PowdersWindow):
         PowdersWindow.setObjectName("PowdersWindow")
-        PowdersWindow.resize(1349, 491)
+        PowdersWindow.resize(1382, 491)
         self.centralwidget = QtWidgets.QWidget(PowdersWindow)
         self.centralwidget.setObjectName("centralwidget")
         self.verticalLayout = QtWidgets.QVBoxLayout(self.centralwidget)

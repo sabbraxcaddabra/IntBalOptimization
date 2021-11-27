@@ -9,8 +9,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>721</width>
-    <height>665</height>
+    <width>851</width>
+    <height>706</height>
    </rect>
   </property>
   <property name="sizePolicy">
@@ -100,6 +100,9 @@
     <pointsize>8</pointsize>
    </font>
   </property>
+  <property name="focusPolicy">
+   <enum>Qt::TabFocus</enum>
+  </property>
   <property name="contextMenuPolicy">
    <enum>Qt::CustomContextMenu</enum>
   </property>
@@ -154,7 +157,7 @@
             </font>
            </property>
            <property name="focusPolicy">
-            <enum>Qt::NoFocus</enum>
+            <enum>Qt::TabFocus</enum>
            </property>
            <property name="contextMenuPolicy">
             <enum>Qt::CustomContextMenu</enum>
@@ -201,182 +204,11 @@
            <attribute name="verticalHeaderMinimumSectionSize">
             <number>30</number>
            </attribute>
-           <row>
-            <property name="text">
-             <string>Орудие:</string>
-            </property>
-            <property name="font">
-             <font>
-              <weight>75</weight>
-              <bold>true</bold>
-             </font>
-            </property>
-           </row>
-           <row>
-            <property name="text">
-             <string>Калибр d, м:</string>
-            </property>
-            <property name="font">
-             <font>
-              <weight>75</weight>
-              <bold>true</bold>
-             </font>
-            </property>
-           </row>
-           <row>
-            <property name="text">
-             <string>Масса снаряда q, кг:</string>
-            </property>
-            <property name="font">
-             <font>
-              <weight>75</weight>
-              <bold>true</bold>
-             </font>
-            </property>
-           </row>
-           <row>
-            <property name="text">
-             <string>Площадь сечения канала ствола S, м²: </string>
-            </property>
-            <property name="font">
-             <font>
-              <weight>75</weight>
-              <bold>true</bold>
-             </font>
-            </property>
-           </row>
-           <row>
-            <property name="text">
-             <string>Объём зарядной каморы W₀, м³:</string>
-            </property>
-            <property name="font">
-             <font>
-              <weight>75</weight>
-              <bold>true</bold>
-             </font>
-            </property>
-           </row>
-           <row>
-            <property name="text">
-             <string>Путь снаряда в канале ствола lд, м:</string>
-            </property>
-            <property name="font">
-             <font>
-              <weight>75</weight>
-              <bold>true</bold>
-             </font>
-            </property>
-           </row>
-           <row>
-            <property name="text">
-             <string>Длина зарядной каморы lкм, м:</string>
-            </property>
-            <property name="font">
-             <font>
-              <weight>75</weight>
-              <bold>true</bold>
-             </font>
-            </property>
-           </row>
-           <row>
-            <property name="text">
-             <string>Привед. длина зарядной каморы l₀, м:</string>
-            </property>
-            <property name="font">
-             <font>
-              <weight>75</weight>
-              <bold>true</bold>
-             </font>
-            </property>
-           </row>
-           <row>
-            <property name="text">
-             <string>Коэффициент Слухоцкого kφ:</string>
-            </property>
-            <property name="font">
-             <font>
-              <weight>75</weight>
-              <bold>true</bold>
-             </font>
-            </property>
-           </row>
            <column>
             <property name="text">
              <string/>
             </property>
            </column>
-           <item row="0" column="0">
-            <property name="text">
-             <string/>
-            </property>
-            <property name="textAlignment">
-             <set>AlignCenter</set>
-            </property>
-           </item>
-           <item row="1" column="0">
-            <property name="text">
-             <string/>
-            </property>
-            <property name="textAlignment">
-             <set>AlignCenter</set>
-            </property>
-           </item>
-           <item row="2" column="0">
-            <property name="text">
-             <string/>
-            </property>
-            <property name="textAlignment">
-             <set>AlignCenter</set>
-            </property>
-           </item>
-           <item row="3" column="0">
-            <property name="text">
-             <string/>
-            </property>
-            <property name="textAlignment">
-             <set>AlignCenter</set>
-            </property>
-           </item>
-           <item row="4" column="0">
-            <property name="text">
-             <string/>
-            </property>
-            <property name="textAlignment">
-             <set>AlignCenter</set>
-            </property>
-           </item>
-           <item row="5" column="0">
-            <property name="text">
-             <string/>
-            </property>
-            <property name="textAlignment">
-             <set>AlignCenter</set>
-            </property>
-           </item>
-           <item row="6" column="0">
-            <property name="text">
-             <string/>
-            </property>
-            <property name="textAlignment">
-             <set>AlignCenter</set>
-            </property>
-           </item>
-           <item row="7" column="0">
-            <property name="text">
-             <string/>
-            </property>
-            <property name="textAlignment">
-             <set>AlignCenter</set>
-            </property>
-           </item>
-           <item row="8" column="0">
-            <property name="text">
-             <string/>
-            </property>
-            <property name="textAlignment">
-             <set>AlignCenter</set>
-            </property>
-           </item>
           </widget>
          </item>
         </layout>
@@ -395,8 +227,8 @@
          <string>Параметры заряжания:</string>
         </property>
         <layout class="QGridLayout" name="gridLayout_2">
-         <item row="1" column="0">
-          <widget class="QLabel" name="label_PressIgnit">
+         <item row="3" column="0">
+          <widget class="QLabel" name="label_Temp">
            <property name="font">
             <font>
              <pointsize>11</pointsize>
@@ -405,7 +237,7 @@
             </font>
            </property>
            <property name="text">
-            <string>Давление воспламенителя, МПа:  </string>
+            <string>Темп. метатательного заряда, °С: </string>
            </property>
           </widget>
          </item>
@@ -423,6 +255,20 @@
            </property>
           </widget>
          </item>
+         <item row="1" column="0">
+          <widget class="QLabel" name="label_PressIgnit">
+           <property name="font">
+            <font>
+             <pointsize>11</pointsize>
+             <weight>50</weight>
+             <bold>false</bold>
+            </font>
+           </property>
+           <property name="text">
+            <string>Давление воспламенителя, МПа:  </string>
+           </property>
+          </widget>
+         </item>
          <item row="0" column="0">
           <widget class="QLabel" name="label_regIgnit">
            <property name="font">
@@ -437,80 +283,6 @@
            </property>
           </widget>
          </item>
-         <item row="1" column="1">
-          <widget class="QLineEdit" name="val_PressIgnit">
-           <property name="sizePolicy">
-            <sizepolicy hsizetype="Maximum" vsizetype="Fixed">
-             <horstretch>0</horstretch>
-             <verstretch>0</verstretch>
-            </sizepolicy>
-           </property>
-           <property name="minimumSize">
-            <size>
-             <width>0</width>
-             <height>0</height>
-            </size>
-           </property>
-           <property name="maximumSize">
-            <size>
-             <width>16777215</width>
-             <height>16777215</height>
-            </size>
-           </property>
-           <property name="font">
-            <font>
-             <weight>50</weight>
-             <bold>false</bold>
-            </font>
-           </property>
-           <property name="text">
-            <string/>
-           </property>
-           <property name="maxLength">
-            <number>11</number>
-           </property>
-           <property name="alignment">
-            <set>Qt::AlignCenter</set>
-           </property>
-          </widget>
-         </item>
-         <item row="2" column="1">
-          <widget class="QLineEdit" name="val_PressForc">
-           <property name="sizePolicy">
-            <sizepolicy hsizetype="Maximum" vsizetype="Fixed">
-             <horstretch>0</horstretch>
-             <verstretch>0</verstretch>
-            </sizepolicy>
-           </property>
-           <property name="minimumSize">
-            <size>
-             <width>0</width>
-             <height>0</height>
-            </size>
-           </property>
-           <property name="maximumSize">
-            <size>
-             <width>16777215</width>
-             <height>16777215</height>
-            </size>
-           </property>
-           <property name="font">
-            <font>
-             <weight>50</weight>
-             <bold>false</bold>
-            </font>
-           </property>
-           <property name="text">
-            <string/>
-           </property>
-           <property name="maxLength">
-            <number>11</number>
-           </property>
-           <property name="alignment">
-            <set>Qt::AlignCenter</set>
-           </property>
-          </widget>
-         </item>
          <item row="0" column="1">
           <widget class="QComboBox" name="combo_regIgnit">
            <property name="sizePolicy">
@@ -521,7 +293,7 @@
            </property>
            <property name="minimumSize">
             <size>
-             <width>100</width>
+             <width>160</width>
              <height>0</height>
             </size>
            </property>
@@ -549,17 +321,65 @@
            </item>
           </widget>
          </item>
-         <item row="3" column="0">
-          <widget class="QLabel" name="label_Temp">
+         <item row="1" column="1">
+          <widget class="QLineEdit" name="val_PressIgnit">
+           <property name="sizePolicy">
+            <sizepolicy hsizetype="Maximum" vsizetype="Fixed">
+             <horstretch>0</horstretch>
+             <verstretch>0</verstretch>
+            </sizepolicy>
+           </property>
+           <property name="maximumSize">
+            <size>
+             <width>80</width>
+             <height>16777215</height>
+            </size>
+           </property>
            <property name="font">
             <font>
-             <pointsize>11</pointsize>
              <weight>50</weight>
              <bold>false</bold>
             </font>
            </property>
-           <property name="text">
-            <string>Темп. метатательного заряда, °С: </string>
+           <property name="layoutDirection">
+            <enum>Qt::RightToLeft</enum>
+           </property>
+           <property name="maxLength">
+            <number>7</number>
+           </property>
+           <property name="alignment">
+            <set>Qt::AlignCenter</set>
+           </property>
+          </widget>
+         </item>
+         <item row="2" column="1">
+          <widget class="QLineEdit" name="val_PressForc">
+           <property name="sizePolicy">
+            <sizepolicy hsizetype="Maximum" vsizetype="Fixed">
+             <horstretch>0</horstretch>
+             <verstretch>0</verstretch>
+            </sizepolicy>
+           </property>
+           <property name="maximumSize">
+            <size>
+             <width>80</width>
+             <height>16777215</height>
+            </size>
+           </property>
+           <property name="font">
+            <font>
+             <weight>50</weight>
+             <bold>false</bold>
+            </font>
+           </property>
+           <property name="layoutDirection">
+            <enum>Qt::RightToLeft</enum>
+           </property>
+           <property name="maxLength">
+            <number>7</number>
+           </property>
+           <property name="alignment">
+            <set>Qt::AlignCenter</set>
            </property>
           </widget>
          </item>
@@ -573,7 +393,7 @@
            </property>
            <property name="maximumSize">
             <size>
-             <width>16777215</width>
+             <width>80</width>
              <height>16777215</height>
             </size>
            </property>
@@ -583,11 +403,11 @@
              <bold>false</bold>
             </font>
            </property>
-           <property name="text">
-            <string/>
+           <property name="layoutDirection">
+            <enum>Qt::RightToLeft</enum>
            </property>
            <property name="maxLength">
-            <number>11</number>
+            <number>7</number>
            </property>
            <property name="alignment">
             <set>Qt::AlignCenter</set>
@@ -625,6 +445,9 @@
             <pointsize>12</pointsize>
            </font>
           </property>
+          <property name="focusPolicy">
+           <enum>Qt::TabFocus</enum>
+          </property>
           <property name="contextMenuPolicy">
            <enum>Qt::NoContextMenu</enum>
           </property>
@@ -645,6 +468,9 @@
            <font>
             <pointsize>12</pointsize>
            </font>
+          </property>
+          <property name="focusPolicy">
+           <enum>Qt::TabFocus</enum>
           </property>
           <property name="text">
            <string>Синтез</string>
@@ -710,7 +536,7 @@
           </font>
          </property>
          <property name="focusPolicy">
-          <enum>Qt::NoFocus</enum>
+          <enum>Qt::TabFocus</enum>
          </property>
          <property name="verticalScrollBarPolicy">
           <enum>Qt::ScrollBarAsNeeded</enum>
@@ -736,248 +562,6 @@
          <attribute name="verticalHeaderMinimumSectionSize">
           <number>30</number>
          </attribute>
-         <row>
-          <property name="text">
-           <string>Марка пороха: </string>
-          </property>
-          <property name="font">
-           <font>
-            <weight>75</weight>
-            <bold>true</bold>
-           </font>
-          </property>
-          <property name="textAlignment">
-           <set>AlignCenter</set>
-          </property>
-         </row>
-         <row>
-          <property name="text">
-           <string>ω, кг: </string>
-          </property>
-          <property name="font">
-           <font>
-            <weight>75</weight>
-            <bold>true</bold>
-           </font>
-          </property>
-          <property name="textAlignment">
-           <set>AlignCenter</set>
-          </property>
-         </row>
-         <row>
-          <property name="text">
-           <string>δ, кг/м³: </string>
-          </property>
-          <property name="font">
-           <font>
-            <weight>75</weight>
-            <bold>true</bold>
-           </font>
-          </property>
-          <property name="textAlignment">
-           <set>AlignCenter</set>
-          </property>
-         </row>
-         <row>
-          <property name="text">
-           <string>f, Дж/кг: </string>
-          </property>
-          <property name="font">
-           <font>
-            <weight>75</weight>
-            <bold>true</bold>
-           </font>
-          </property>
-          <property name="textAlignment">
-           <set>AlignCenter</set>
-          </property>
-         </row>
-         <row>
-          <property name="text">
-           <string>T₁, К: </string>
-          </property>
-          <property name="font">
-           <font>
-            <weight>75</weight>
-            <bold>true</bold>
-           </font>
-          </property>
-          <property name="textAlignment">
-           <set>AlignCenter</set>
-          </property>
-         </row>
-         <row>
-          <property name="text">
-           <string>Iк, Па⋅с: </string>
-          </property>
-          <property name="font">
-           <font>
-            <weight>75</weight>
-            <bold>true</bold>
-           </font>
-          </property>
-          <property name="textAlignment">
-           <set>AlignCenter</set>
-          </property>
-         </row>
-         <row>
-          <property name="text">
-           <string>α, м³/кг: </string>
-          </property>
-          <property name="font">
-           <font>
-            <weight>75</weight>
-            <bold>true</bold>
-           </font>
-          </property>
-          <property name="textAlignment">
-           <set>AlignCenter</set>
-          </property>
-         </row>
-         <row>
-          <property name="text">
-           <string>θ: </string>
-          </property>
-          <property name="font">
-           <font>
-            <weight>75</weight>
-            <bold>true</bold>
-           </font>
-          </property>
-          <property name="textAlignment">
-           <set>AlignCenter</set>
-          </property>
-         </row>
-         <row>
-          <property name="text">
-           <string>Zк: </string>
-          </property>
-          <property name="font">
-           <font>
-            <weight>75</weight>
-            <bold>true</bold>
-           </font>
-          </property>
-          <property name="textAlignment">
-           <set>AlignCenter</set>
-          </property>
-         </row>
-         <row>
-          <property name="text">
-           <string>Κ₁: </string>
-          </property>
-          <property name="font">
-           <font>
-            <weight>75</weight>
-            <bold>true</bold>
-           </font>
-          </property>
-          <property name="textAlignment">
-           <set>AlignCenter</set>
-          </property>
-         </row>
-         <row>
-          <property name="text">
-           <string>λ₁: </string>
-          </property>
-          <property name="font">
-           <font>
-            <weight>75</weight>
-            <bold>true</bold>
-           </font>
-          </property>
-          <property name="textAlignment">
-           <set>AlignCenter</set>
-          </property>
-         </row>
-         <row>
-          <property name="text">
-           <string>μ₁: </string>
-          </property>
-          <property name="font">
-           <font>
-            <weight>75</weight>
-            <bold>true</bold>
-           </font>
-          </property>
-          <property name="textAlignment">
-           <set>AlignCenter</set>
-          </property>
-         </row>
-         <row>
-          <property name="text">
-           <string>Κ₂: </string>
-          </property>
-          <property name="font">
-           <font>
-            <weight>75</weight>
-            <bold>true</bold>
-           </font>
-          </property>
-          <property name="textAlignment">
-           <set>AlignCenter</set>
-          </property>
-         </row>
-         <row>
-          <property name="text">
-           <string>λ₂: </string>
-          </property>
-          <property name="font">
-           <font>
-            <weight>75</weight>
-            <bold>true</bold>
-           </font>
-          </property>
-          <property name="textAlignment">
-           <set>AlignCenter</set>
-          </property>
-         </row>
-         <row>
-          <property name="text">
-           <string>μ₂: </string>
-          </property>
-          <property name="font">
-           <font>
-            <weight>75</weight>
-            <bold>true</bold>
-           </font>
-          </property>
-          <property name="textAlignment">
-           <set>AlignCenter</set>
-          </property>
-         </row>
-         <row>
-          <property name="text">
-           <string>KfT</string>
-          </property>
-          <property name="font">
-           <font>
-            <family>MS Shell Dlg 2</family>
-            <pointsize>8</pointsize>
-            <weight>75</weight>
-            <bold>true</bold>
-           </font>
-          </property>
-          <property name="textAlignment">
-           <set>AlignCenter</set>
-          </property>
-         </row>
-         <row>
-          <property name="text">
-           <string>KJt</string>
-          </property>
-          <property name="font">
-           <font>
-            <family>MS Shell Dlg 2</family>
-            <pointsize>8</pointsize>
-            <weight>75</weight>
-            <bold>true</bold>
-           </font>
-          </property>
-          <property name="textAlignment">
-           <set>AlignCenter</set>
-          </property>
-         </row>
         </widget>
        </item>
        <item>
@@ -999,7 +583,7 @@
           <widget class="QPushButton" name="butt_del">
            <property name="minimumSize">
             <size>
-             <width>100</width>
+             <width>150</width>
              <height>0</height>
             </size>
            </property>
@@ -1010,8 +594,11 @@
              <bold>false</bold>
             </font>
            </property>
+           <property name="focusPolicy">
+            <enum>Qt::TabFocus</enum>
+           </property>
            <property name="text">
-            <string>Удалить...</string>
+            <string>Удалить колонку</string>
            </property>
           </widget>
          </item>
@@ -1029,6 +616,9 @@
              <weight>50</weight>
              <bold>false</bold>
             </font>
+           </property>
+           <property name="focusPolicy">
+            <enum>Qt::TabFocus</enum>
            </property>
            <property name="text">
             <string>Добавить колонку</string>
@@ -1050,13 +640,15 @@
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>721</width>
-     <height>23</height>
+     <width>851</width>
+     <height>26</height>
     </rect>
    </property>
    <property name="font">
     <font>
-     <pointsize>10</pointsize>
+     <pointsize>11</pointsize>
+     <weight>75</weight>
+     <bold>true</bold>
      <strikeout>false</strikeout>
     </font>
    </property>
@@ -1091,9 +683,9 @@
    </property>
    <property name="font">
     <font>
-     <pointsize>10</pointsize>
-     <weight>75</weight>
-     <bold>true</bold>
+     <pointsize>11</pointsize>
+     <weight>50</weight>
+     <bold>false</bold>
     </font>
    </property>
   </action>
@@ -1103,9 +695,9 @@
    </property>
    <property name="font">
     <font>
-     <pointsize>10</pointsize>
-     <weight>75</weight>
-     <bold>true</bold>
+     <pointsize>11</pointsize>
+     <weight>50</weight>
+     <bold>false</bold>
     </font>
    </property>
   </action>
@@ -1115,9 +707,9 @@
    </property>
    <property name="font">
     <font>
-     <pointsize>10</pointsize>
-     <weight>75</weight>
-     <bold>true</bold>
+     <pointsize>11</pointsize>
+     <weight>50</weight>
+     <bold>false</bold>
     </font>
    </property>
   </action>
@@ -1127,9 +719,9 @@
    </property>
    <property name="font">
     <font>
-     <pointsize>10</pointsize>
-     <weight>75</weight>
-     <bold>true</bold>
+     <pointsize>11</pointsize>
+     <weight>50</weight>
+     <bold>false</bold>
     </font>
    </property>
   </action>
@@ -1144,7 +736,9 @@
    </property>
    <property name="font">
     <font>
-     <pointsize>10</pointsize>
+     <pointsize>11</pointsize>
+     <weight>50</weight>
+     <bold>false</bold>
     </font>
    </property>
   </action>
