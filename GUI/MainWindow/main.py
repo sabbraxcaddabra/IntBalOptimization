@@ -2,7 +2,7 @@ import os
 import sys
 # Моё последнеее сохранение
 from PyQt5 import QtWidgets, Qt, QtCore, QtGui
-from PyQt5.QtCore import QDir
+from PyQt5.QtCore import QDir, QSysInfo
 from PyQt5.QtGui import QFont
 from PyQt5.QtWidgets import QMessageBox, QFileDialog, QHeaderView, QApplication
 from InternalBallistics.IntBalClasses import ArtSystem, Powder, IntBalParams
@@ -51,7 +51,17 @@ class InitApp(QtWidgets.QMainWindow, initGUI.Ui_MainWindow):
         self.butt_synth.clicked.connect(self.StartOptimize)                 # Вызываем окно оптимизации
         self.combo_regIgnit.activated.connect(self.comboReg)                # Обрабатываем выбор комбобокса
 
-        self.FillTable()
+        self.FillTable()            # Заполняем таблицы
+
+        # Корректируем таблицы
+        FixTableWindows10(self.tableInitArtSys)
+        FixTableWindows10(self.tableInitPowders)
+
+
+
+
+
+
 
 
     # Метод заполняет таблицы порохов и арт. системы
@@ -177,18 +187,12 @@ class InitApp(QtWidgets.QMainWindow, initGUI.Ui_MainWindow):
         self.tableInitArtSys.verticalHeader().setSectionResizeMode(QHeaderView.Stretch)
         self.tableInitArtSys.horizontalHeader().setSectionResizeMode(QHeaderView.Stretch)
 
-
-
-
-
-
-
     # Метод масштабирует шрифты, в зависимости от разрешения
     def resizeEvent(self, event):
-        width = self.width()
-        height = self.height()
-
-        print(width, height)
+        # width = self.width()
+        # height = self.height()
+        #
+        # print(width, height)
 
         #
         # sizefont = round(11 * (height / 565))
@@ -211,24 +215,34 @@ class InitApp(QtWidgets.QMainWindow, initGUI.Ui_MainWindow):
         # self.tableInitArtSys.horizontalHeader().setSectionResizeMode(QHeaderView.Interactive)
         pass
 
-
     # Метод обрабатывает выбор в комбобоксе
     def comboReg(self):
         curReg = self.combo_regIgnit.currentIndex()
         if curReg == 0:
             self.label_PressIgnit.setText("Давление воспламенителя, МПа:  ")
             self.val_PressIgnit.clear()
+            # Корректируем размещение
+            self.val_PressIgnit.setLayoutDirection(QtCore.Qt.RightToLeft)
+            self.val_Temp.setLayoutDirection(QtCore.Qt.RightToLeft)
+            self.val_PressForc.setLayoutDirection(QtCore.Qt.RightToLeft)
         elif curReg == 1:
             self.label_PressIgnit.setText("Масса воспламенителя, кг:  ")
             self.val_PressIgnit.clear()
-
-
+            # Корректируем размещение
+            self.val_PressIgnit.setLayoutDirection(QtCore.Qt.RightToLeft)
+            self.val_Temp.setLayoutDirection(QtCore.Qt.RightToLeft)
+            self.val_PressForc.setLayoutDirection(QtCore.Qt.RightToLeft)
 
 
     # Метод добавляет колонку для пороха
     def addColumnPowder(self):
         count = self.tableInitPowders.columnCount()         #Определяем текущее количество колонок
         self.tableInitPowders.insertColumn(count)           #Вставляем новую колонку
+        # Перемещаем скролл бар
+        maxPos = self.tableInitPowders.horizontalScrollBar().maximum()
+        self.tableInitPowders.horizontalScrollBar().setValue(maxPos)
+
+
         #Вызываем свой метод чтобы отцентрировать текст в ячейках колонки
         self.CellAlignCenter(count)
     # Обрабатываем выбор колонки для удаления пороха
@@ -282,7 +296,6 @@ class InitApp(QtWidgets.QMainWindow, initGUI.Ui_MainWindow):
         self.DialogAnalysis = AnalysisApp(int_bal_cond=self.set_int_bal_cond())
         self.DialogAnalysis.show()
 
-
     def set_int_bal_cond(self):
         # Передаём хар-ки арт. системы
         nameArt = self.tableInitArtSys.item(0, 0).text()
@@ -319,7 +332,6 @@ class InitApp(QtWidgets.QMainWindow, initGUI.Ui_MainWindow):
 
         return int_bal_cond
 
-
     # Метод вызывает окно оптимизации
     def StartOptimize(self):
         # Проверяем все исходные данные перед расчётом
@@ -327,8 +339,6 @@ class InitApp(QtWidgets.QMainWindow, initGUI.Ui_MainWindow):
             return False
         self.MainOptimize = OptimizeApp(parent=self)
         self.MainOptimize.show()
-
-
 
     # Метод производит сохранение файла
     def FileSave(self):
@@ -464,7 +474,6 @@ class InitApp(QtWidgets.QMainWindow, initGUI.Ui_MainWindow):
             pass
         except IndexError:
             ErrorDialog()
-
 
     # Метод добавляет выбранный порох в таблицу
     def sel_Powder(self, CharPowder):
@@ -641,10 +650,13 @@ class PowdersApp(QtWidgets.QMainWindow, powdersGUI.Ui_PowdersWindow):
             self.tableCharPowders.insertRow(row)                                                        #Добавляем новую строку за текущей
         self.tableCharPowders.removeRow(row)                                                            #В конце удаляем лишнюю строку
         F.close()                                                                                       #Закрываем файл
+        # Чиним таблицу
+        FixTableWindows10(self.tableCharPowders)
 
         self.tableCharPowders.verticalHeader().sectionClicked.connect(self.selPowder)           # Отслеживаем клик по шапке строки
         self.butt_PowdersAdd.clicked.connect(self.AddPowder)                                    # Добавляем выбранный порох
         self.butt_PowdersClose.clicked.connect(self.close)                                      # Закрываем базу порохов по кнопке "Закрыть"
+
 
 
     #Обрабатываем выбор пороха и присваеваем номер выбранного пороха
@@ -701,11 +713,13 @@ class ArtSysApp(QtWidgets.QMainWindow, artsysGUI.Ui_ArtSysWindow):
         self.tableCharArtSys.removeRow(row)
         F.close()
 
+        # Чиним таблицу
+        FixTableWindows10(self.tableCharArtSys)
+
         #Обрабатываем события
         self.tableCharArtSys.verticalHeader().sectionClicked.connect(self.selArtSys)           # Отслеживаем клик по шапке строки
         self.butt_ArtSysClose.clicked.connect(self.close)                                           # Закрываем базу арт. систем по кнопке "Закрыть"
         self.butt_ArtSysAdd.clicked.connect(self.AddArtSys)                                       # Добавляем арт. систему из базы по кнопке "Добавить"
-
 
     #Обрабатываем выбор арт. системы и присваеваем номер выбранного пороха
     def selArtSys(self):
@@ -732,6 +746,31 @@ class ArtSysApp(QtWidgets.QMainWindow, artsysGUI.Ui_ArtSysWindow):
 
 
 
+    # Метод чинит отображение таблиц на Win10
+
+
+def FixTableWindows10(tableName):
+    def SetStyle():
+        tableName.setStyleSheet(
+            "QHeaderView::section{"
+            "border-top:0px solid #b9b9b9;"
+            "border-left:0px solid #b9b9b9;"
+            "border-right:1px solid #b9b9b9;"
+            "border-bottom: 1px solid #b9b9b9;"
+            "background-color:#fafafa;"
+            "padding:4px;"
+            "}"
+            "QTableCornerButton::section{"
+            "border-top:0px solid #b9b9b9;"
+            "border-left:0px solid #b9b9b9;"
+            "border-right:1px solid #b9b9b9;"
+            "border-bottom: 1px solid #b9b9b9;"
+            "background-color: #fafafa;"
+            "}"
+        )
+
+    if QSysInfo.windowsVersion() == QSysInfo.WV_WINDOWS10:
+        SetStyle()
 
 #Функция вызывает окно исходных данных
 def InitWin():

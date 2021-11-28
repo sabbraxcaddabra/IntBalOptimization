@@ -1,4 +1,5 @@
 import matplotlib.pyplot as plt
+from PyQt5.QtCore import QSysInfo
 
 from InternalBallistics.ErrorClasses import *
 from GUI.Analyze import analysisGUI                      #конвертированный в .py фал дизайна окна анализа
@@ -79,14 +80,43 @@ class AnalysisApp(QtWidgets.QMainWindow, analysisGUI.Ui_AnalysWindow):   #Пом
         #self.result_table.hide()
         self.result_table.horizontalHeader().setSectionResizeMode(QHeaderView.Stretch)
 
+        # Чиним таблицу с результатами
+        self.FixTableWindows10(self.result_table)
+
         # Блокируем вкладку графика
         self.ResWindow.setTabEnabled(1, False)
+
+
+
         # События для кнопок
         self.butt_raschet.clicked.connect(self.do_raschet)
         self.plot_comboBox.view().pressed.connect(self.handleItemPressed)
 
         self.butt_close.clicked.connect(self.close)                         # Событие кнопки "Закрыть"
 
+    # Метод чинит таблицу с результатам на Win10
+    def FixTableWindows10(self, tableName):
+        def SetStyle():
+            tableName.setStyleSheet(
+                "QHeaderView::section{"
+                "border-top:0px solid #b9b9b9;"
+                "border-left:0px solid #b9b9b9;"
+                "border-right:1px solid #b9b9b9;"
+                "border-bottom: 1px solid #b9b9b9;"
+                "background-color:#fafafa;"
+                "padding:4px;"
+                "}"
+                "QTableCornerButton::section{"
+                "border-top:0px solid #b9b9b9;"
+                "border-left:0px solid #b9b9b9;"
+                "border-right:1px solid #b9b9b9;"
+                "border-bottom: 1px solid #b9b9b9;"
+                "background-color: #fafafa;"
+                "}"
+            )
+
+        if QSysInfo.windowsVersion() == QSysInfo.WV_WINDOWS10:
+            SetStyle()
 
     # Метод проверяет введённые данные
     def CheckValue(self):
