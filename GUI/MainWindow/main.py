@@ -652,8 +652,13 @@ class PowdersApp(QtWidgets.QMainWindow, powdersGUI.Ui_PowdersWindow):
         F.close()                                                                                       #Закрываем файл
         # Чиним таблицу
         FixTableWindows10(self.tableCharPowders)
+        # Скрываем лейбл с названием
+        self.label.hide()
 
-        self.tableCharPowders.verticalHeader().sectionClicked.connect(self.selPowder)           # Отслеживаем клик по шапке строки
+
+
+        self.tableCharPowders.cellClicked.connect(self.selPowder)                               # Отслеживаем клик по ячейки пороха
+        self.tableCharPowders.verticalHeader().sectionClicked.connect(self.selPowder)           # или по заголовку
         self.butt_PowdersAdd.clicked.connect(self.AddPowder)                                    # Добавляем выбранный порох
         self.butt_PowdersClose.clicked.connect(self.close)                                      # Закрываем базу порохов по кнопке "Закрыть"
 
@@ -661,7 +666,21 @@ class PowdersApp(QtWidgets.QMainWindow, powdersGUI.Ui_PowdersWindow):
 
     #Обрабатываем выбор пороха и присваеваем номер выбранного пороха
     def selPowder(self):
-        self.selCellPowd = self.tableCharPowders.currentRow()
+        SelRow = self.tableCharPowders.currentRow()
+        self.tableCharPowders.selectRow(SelRow)  # Выделяем строку
+
+        NamePowd = self.tableCharPowders.item(SelRow, 0).text()
+        if SelRow == 64:
+            self.label.setText("Выбрана свинцовая проволока")
+        elif SelRow == 65:
+            self.label.setText("Выбрана инертная добавка")
+        elif SelRow == 66:
+            self.label.setText("Выбран флегматизатор")
+        else:
+            self.label.setText("Выбран порох №"+str(SelRow+1)+": "+NamePowd)
+        self.label.show()
+
+        self.selCellPowd = SelRow
 
     #Передаём выбранный порох в главное окно, если порох не выбран сделать диалоговое окно с ошибкой
     def AddPowder(self):
@@ -715,15 +734,24 @@ class ArtSysApp(QtWidgets.QMainWindow, artsysGUI.Ui_ArtSysWindow):
 
         # Чиним таблицу
         FixTableWindows10(self.tableCharArtSys)
-
+        # Скрываем название выбранной арт. системы
+        self.label.hide()
         #Обрабатываем события
-        self.tableCharArtSys.verticalHeader().sectionClicked.connect(self.selArtSys)           # Отслеживаем клик по шапке строки
+        self.tableCharArtSys.cellClicked.connect(self.selArtSys)           # Отслеживаем клик по ячейке теблицы
+        self.tableCharArtSys.verticalHeader().sectionClicked.connect(self.selArtSys)           # или по заголовку
         self.butt_ArtSysClose.clicked.connect(self.close)                                           # Закрываем базу арт. систем по кнопке "Закрыть"
         self.butt_ArtSysAdd.clicked.connect(self.AddArtSys)                                       # Добавляем арт. систему из базы по кнопке "Добавить"
 
     #Обрабатываем выбор арт. системы и присваеваем номер выбранного пороха
     def selArtSys(self):
-        self.selCellArt = self.tableCharArtSys.currentRow()
+        SelRow = self.tableCharArtSys.currentRow()
+        self.tableCharArtSys.selectRow(SelRow)  # Выделяем строку
+
+        NameSys = self.tableCharArtSys.item(SelRow, 0).text()
+        self.label.setText("Выбрана арт. система №"+str(SelRow+1)+": "+NameSys)
+        self.label.show()
+
+        self.selCellArt = SelRow
 
     #Передаём выбранную арт. систему в главное окно, если система не выбрана сделать диалоговое окно с ошибкой
     def AddArtSys(self):
@@ -767,10 +795,16 @@ def FixTableWindows10(tableName):
             "border-bottom: 1px solid #b9b9b9;"
             "background-color: #fafafa;"
             "}"
+            "QTableWidget::item{"
+            "color: black;"
+            "selection-color: black;"
+            #"selection-background-color: #fcfcfc;"
+            "}"
         )
 
-    if QSysInfo.windowsVersion() == QSysInfo.WV_WINDOWS10:
+    if QSysInfo.windowsVersion() == QSysInfo.WV_WINDOWS10:  # Может вообще убрать? Зависит от ОС
         SetStyle()
+        print('helo')
 
 #Функция вызывает окно исходных данных
 def InitWin():

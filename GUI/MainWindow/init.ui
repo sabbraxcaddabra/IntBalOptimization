@@ -199,6 +199,9 @@
            <property name="contextMenuPolicy">
             <enum>Qt::CustomContextMenu</enum>
            </property>
+           <property name="styleSheet">
+            <string notr="true"/>
+           </property>
            <property name="inputMethodHints">
             <set>Qt::ImhNone</set>
            </property>
@@ -568,6 +571,15 @@
          <property name="palette">
           <palette>
            <active>
+            <colorrole role="BrightText">
+             <brush brushstyle="SolidPattern">
+              <color alpha="255">
+               <red>0</red>
+               <green>0</green>
+               <blue>0</blue>
+              </color>
+             </brush>
+            </colorrole>
             <colorrole role="Highlight">
              <brush brushstyle="SolidPattern">
               <color alpha="255">
@@ -579,6 +591,15 @@
             </colorrole>
            </active>
            <inactive>
+            <colorrole role="BrightText">
+             <brush brushstyle="SolidPattern">
+              <color alpha="255">
+               <red>0</red>
+               <green>0</green>
+               <blue>0</blue>
+              </color>
+             </brush>
+            </colorrole>
             <colorrole role="Highlight">
              <brush brushstyle="SolidPattern">
               <color alpha="255">
@@ -590,6 +611,15 @@
             </colorrole>
            </inactive>
            <disabled>
+            <colorrole role="BrightText">
+             <brush brushstyle="SolidPattern">
+              <color alpha="255">
+               <red>0</red>
+               <green>0</green>
+               <blue>0</blue>
+              </color>
+             </brush>
+            </colorrole>
             <colorrole role="Highlight">
              <brush brushstyle="SolidPattern">
               <color alpha="255">
@@ -611,6 +641,9 @@
          </property>
          <property name="focusPolicy">
           <enum>Qt::TabFocus</enum>
+         </property>
+         <property name="styleSheet">
+          <string notr="true"/>
          </property>
          <property name="verticalScrollBarPolicy">
           <enum>Qt::ScrollBarAsNeeded</enum>

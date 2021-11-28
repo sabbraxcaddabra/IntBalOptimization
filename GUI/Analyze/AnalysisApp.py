@@ -113,6 +113,11 @@ class AnalysisApp(QtWidgets.QMainWindow, analysisGUI.Ui_AnalysWindow):   #Пом
                 "border-bottom: 1px solid #b9b9b9;"
                 "background-color: #fafafa;"
                 "}"
+                "QTableWidget::item{"
+                "color: black;"
+                "selection-color: black;"
+                #"selection-background-color: #fcfcfc;"
+                "}"
             )
 
         if QSysInfo.windowsVersion() == QSysInfo.WV_WINDOWS10:
