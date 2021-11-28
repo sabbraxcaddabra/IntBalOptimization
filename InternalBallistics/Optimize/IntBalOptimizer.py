@@ -50,7 +50,7 @@ class IntBalOptimizer(RandomScanOptimizer, RandomSearchOptimizer):
     }
     KWARGS = {
         'random_search': {'N': 100, 'M': 50, 't0': 0.1, 'R': 1e-4},
-        'random_scan': {'N': 100, 'max_modifier': 10}
+        'random_scan': {'N': 400, 'max_modifier': 20}
     }
 
     combo_out_func = lambda combo: print(combo)
