@@ -77,14 +77,14 @@ class IntBalOptimizer(RandomScanOptimizer, RandomSearchOptimizer):
         self.add_new_adapter('mass', adapt_powders_mass)
         self.add_new_adapter('Jk', adapt_Jk)
 
+        if self.max_eta_k:
+            self.second_ground_boundary['Eta_k'] = {'func': check_eta_k, 'lim': self.max_eta_k}
+
     def set_second_ground_boundary(self):
 
         self.second_ground_boundary = {
             'Pmax': {'func': check_pmax, 'lim': self.Pmax}
         }
-
-    def add_eta_k_boundary(self):
-        self.second_ground_boundary['Eta_k'] = {'func': check_eta_k, 'lim': self.max_eta_k}
 
     def set_first_ground_boundary(self):
 

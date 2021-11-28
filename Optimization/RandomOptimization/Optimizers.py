@@ -160,7 +160,7 @@ class RandomScanOptimizer(Optimizer):
         try:
             last_x = self.x_vec[:]
             self._adapt(last_x)
-            last_f, last_second_ground_boundary = self.t_func(last_x, self.params)
+            last_f, last_sol = self.t_func(last_x, self.params)
         except:
             raise FirstStepOptimizationError()
 
@@ -175,7 +175,7 @@ class RandomScanOptimizer(Optimizer):
                     cur_f, cur_solution = self.t_func(xx, self.params)
                     if self._check_second_ground_boundary(cur_solution):
                         if cur_f <= last_f and abs(cur_f - last_f) > min_delta_f:
-                            last_f, last_x = cur_f, xx[:]
+                            last_f, last_x, last_sol = cur_f, xx[:], cur_solution
                             if self.out_func:
                                 self.out_func(xx, cur_f, cur_solution, self.params)
                             bad_steps_cur = 0
@@ -193,7 +193,7 @@ class RandomScanOptimizer(Optimizer):
                 cur_step_modifier += 1
 
         if not np.array_equal(last_x, self.x_vec):
-            return last_x, last_f
+            return last_x, last_f, last_sol
         else:
             raise MinStepOptimizerError()
 
@@ -240,7 +240,7 @@ class RandomSearchOptimizer(Optimizer):
         try:
             last_x = np.ones(len(self.x_vec))
             self._adapt(last_x*self.x_vec)
-            last_f, last_second_ground_boundary = self.t_func(last_x, self.params)
+            last_f, last_sol = self.t_func(last_x, self.params)
         except:
             raise FirstStepOptimizationError()
 
@@ -259,7 +259,7 @@ class RandomSearchOptimizer(Optimizer):
                                     cur_f, cur_solution = self.t_func(zj, self.params)
                                     if self._check_second_ground_boundary(cur_solution):
                                         if cur_f <= last_f and abs(cur_f - last_f) > min_delta_f:
-                                            last_x, last_f = zj/self.x_vec, cur_f
+                                            last_x, last_f, last_sol = zj/self.x_vec, cur_f, cur_solution
                                             t0 *= alpha
                                             steps_total += 1
                                             if self.out_func:
@@ -283,7 +283,7 @@ class RandomSearchOptimizer(Optimizer):
             if t0 <= R:
                 if not np.array_equal(last_x, np.ones(len(self.x_vec))):
                     #print(f"Оптимизация завершилась успешно, шаг минимальный {t0=}")
-                    return last_x * self.x_vec, last_f
+                    return last_x * self.x_vec, last_f, last_sol
                 else:
                     raise MinStepOptimizerError()
             else:
@@ -292,6 +292,6 @@ class RandomSearchOptimizer(Optimizer):
 
         if not np.array_equal(last_x, np.ones(len(self.x_vec))):
             #print("Оптимизация завершилась успешно, израсходованно максимальное число итераций")
-            return last_x * self.x_vec, last_f
+            return last_x * self.x_vec, last_f, last_sol
         else:
             raise TooMuchItersOptimizerError()
