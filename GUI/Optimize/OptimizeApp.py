@@ -47,9 +47,9 @@ class Optimization(QtCore.QObject):
         if combo_index == 0:
             x_lims = [[0, np.inf] for _ in range(len(x_vec))]
         else:
-            powd_mass_lim = float(self.val_massPowd.text())/100.
+            powd_mass_lim = float(self.parent.val_massPowd.text())/100.
 
-            finit_imp_lim = float(self.val_FinitImpuls.text())/100
+            finit_imp_lim = float(self.parent.val_FinitImpuls.text())/100
 
             x_lims = [[0., powd.omega + powd_mass_lim*powd.omega] for powd in self.int_bal_cond.charge] + \
                 [[powd.Jk - finit_imp_lim*powd.Jk, powd.Jk + finit_imp_lim*powd.Jk] for powd in self.int_bal_cond.charge]
