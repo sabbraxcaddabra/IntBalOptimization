@@ -19,6 +19,7 @@ class Optimization(QtCore.QObject):
     finished = QtCore.pyqtSignal()
     new_info = QtCore.pyqtSignal(str)
     progress_bar_updater = QtCore.pyqtSignal(int)
+    progress_bar_updater_sel_comp = QtCore.pyqtSignal(int)
     counter = 0
 
     def __init__(self, parent):
@@ -69,12 +70,37 @@ class Optimization(QtCore.QObject):
 
         if self.parent.checkBox_SelComp.isChecked():
             optimizer.out_func = None
-            optimized_xvec = optimizer.optimize_with_Jk(method)
+            optimized_xvec, optimized_f, optimized_sol = optimizer.optimize_with_Jk(method)
+            optimizer._adapt(optimized_xvec)
+            text = 'Лучший вариант\n'
+            for powd in optimizer.params.charge:
+                text += f"Масса пороха {powd.name}: {round(powd.omega, 4)} кг\n"
+                text += f"Конечный импульс пороха {powd.name}: {round(powd.Jk*1e-3, 2)} кПа*с\n"
+            text += f"Дульная скорость: {-round(optimized_f, 1)} м/с\n"
+            text += f"Максимальное среднебаллистическое давление: {round(optimized_sol[0] * 1e-6, 2)} МПа\n"
+            text += f"Максимальное давление на дно снаряда: {round(optimized_sol[1] * 1e-6, 2)} МПа\n"
+            text += f"Максимальное давление на дно канала ствола: {round(optimized_sol[2] * 1e-6, 2)} МПа\n"
+            text += f"Координата полного сгорания порохового заряда {round(optimized_sol[3], 4)} м\n"
+            self.new_info.emit(text)
             self.pick_up_optimum_charge(optimizer, optimized_xvec, method)
         else:
             optimizer.out_func = self.out_func
-            optimized_xvec = optimizer.optimize_with_Jk(method)
+            optimized_xvec = optimizer.optimize_with_Jk(method)[0]
         self.finished.emit()
+
+    def combo_info(self, num, info_dict):
+        text = f'Комбинация № {num}\n'
+        for powd in info_dict['combo']:
+            text += f"Масса пороха {powd.name}: {round(powd.omega, 4)} кг\n"
+            text += f"Конечный импульс пороха {powd.name}: {round(powd.Jk*1e-3, 2)} кПа*с\n"
+        text += f"Дульная скорость: {round(info_dict['target_func'], 1)} м/с\n"
+        text += f"Максимальное среднебаллистическое давление: {round(info_dict['sol'][0] * 1e-6, 2)} МПа\n"
+        if info_dict['sol'][-1] != 0:
+            text += f"Координата полного сгорания порохового заряда: {round(info_dict['sol'][-1], 4)} м\n"
+        else:
+            text += f"Координата полного сгорания порохового заряда: заряд не догорел\n"
+        self.new_info.emit(text)
+
 
 
 
@@ -94,28 +120,43 @@ class Optimization(QtCore.QObject):
 
         combos = optimizer.get_powder_combination(Jk_dop_list)
 
+        self.new_info.emit(f'\nНайдено {len(combos)} комбинаций порохов\n')
+
         optimized_combos = []
         n_combos = len(combos)
         sizer = floor(100/len(combos))
 
-        for num, combo in enumerate(combos):
+        for num, combo in enumerate(combos, start=1):
             try:
                 info_dict = optimizer.optimize_one_charge(combo, method)
                 optimized_combos.append(info_dict)
-                self.new_info.emit(str(info_dict))
+                self.combo_info(num, info_dict)
             except:
                 self.new_info.emit(f'Не найдено ни одного оптимума {str(combo)}')
                 continue
 
-            self.progress_bar_updater.emit(sizer * num)
+            self.progress_bar_updater_sel_comp.emit(sizer * num)
 
+        best = max(optimized_combos, key=lambda info_dict: info_dict['target_func'])
+
+        text = f'\nЛучший вариант\n'
+        for powd in best['combo']:
+            text += f"Масса пороха {powd.name}: {round(powd.omega, 4)} кг\n"
+            text += f"Конечный импульс пороха {powd.name}: {round(powd.Jk*1e-3, 2)} кПа*с\n"
+        text += f"Дульная скорость: {round(best['target_func'], 1)} м/с\n"
+        text += f"Максимальное среднебаллистическое давление: {round(best['sol'][0] * 1e-6, 2)} МПа\n"
+        if best['sol'][-1] != 0:
+            text += f"Координата полного сгорания порохового заряда: {round(best['sol'][-1], 4)} м\n"
+        else:
+            text += f"Координата полного сгорания порохового заряда: заряд не догорел\n"
+        self.new_info.emit(text)
         #self.new_info.emit('Расчет окончен')
 
     def out_func(self, x_vec, f, sol, params):
-        text = f"Масса снаряда: {params.syst.q = } кг\n"
+        text = ''
         for powd in params.charge:
             text += f"Масса пороха {powd.name}: {round(powd.omega, 4)} кг\n"
-            text += f"Конечный импульс пороха {powd.name}: {round(powd.Jk, 2)} Па*с\n"
+            text += f"Конечный импульс пороха {powd.name}: {round(powd.Jk*1e-3, 2)} кПа*с\n"
         text += f"Дульная скорость: {-round(f, 1)} м/с\n"
         text += f"Максимальное среднебаллистическое давление: {round(sol[0] * 1e-6, 2)} МПа\n"
         text += f"Максимальное давление на дно снаряда: {round(sol[1] * 1e-6, 2)} МПа\n"
@@ -291,7 +332,8 @@ class OptimizeApp(QtWidgets.QMainWindow, optimizGUI.Ui_OptimizeWindow):   #По�
         # после чего подключим все сигналы и слоты
         self.browserHandler.new_info.connect(self.add_new_text)
         self.browserHandler.progress_bar_updater.connect(self.update_progress_bar)
-        self.browserHandler.progress_bar_updater.connect(self.update_progress_bar_select_components)
+        self.browserHandler.progress_bar_updater_sel_comp.connect(self.update_progress_bar_select_components)
+
         # подключим сигнал старта потока к методу run у объекта, который должен выполнять код в другом потоке
         self.thread.started.connect(self.browserHandler.run)
         # self.browserHandler.finished.connect(lambda: self.progressBar_procOptimize.setValue(100))

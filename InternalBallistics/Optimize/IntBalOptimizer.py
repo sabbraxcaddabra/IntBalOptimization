@@ -50,7 +50,7 @@ class IntBalOptimizer(RandomScanOptimizer, RandomSearchOptimizer):
     }
     KWARGS = {
         'random_search': {'N': 100, 'M': 50, 't0': 0.1, 'R': 1e-4},
-        'random_scan': {'N': 100, 'max_modifier': 10}
+        'random_scan': {'N': 400, 'max_modifier': 20}
     }
 
     combo_out_func = lambda combo: print(combo)
@@ -101,9 +101,9 @@ class IntBalOptimizer(RandomScanOptimizer, RandomSearchOptimizer):
 
     def optimize_with_Jk(self, method='random_search'):
 
-        optimized_xvec = self.methods[method](self, **self.KWARGS[method])[0]
+        optimized_xvec, optimized_f, optimized_sol = self.methods[method](self, **self.KWARGS[method])
 
-        return optimized_xvec
+        return optimized_xvec, optimized_f, optimized_sol
 
     def get_powder_combination(self, Jk_dop_list, max_tol=15.):
         """
@@ -146,14 +146,15 @@ class IntBalOptimizer(RandomScanOptimizer, RandomSearchOptimizer):
 
         self.params.charge = charge
         self.x_vec = np.array([powd.omega for powd in charge])
-        xx, ff = self.methods[method](self, **self.KWARGS[method])
+        xx, ff, ss = self.methods[method](self, **self.KWARGS[method])
 
         self._adapt(xx)
 
         info_dict = {
             'combo': deepcopy(self.params.charge),
             'x_vec': xx,
-            'target_func': ff
+            'sol': ss,
+            'target_func': -ff
         }
 
 
