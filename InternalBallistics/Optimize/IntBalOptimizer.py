@@ -139,10 +139,11 @@ class IntBalOptimizer(RandomScanOptimizer, RandomSearchOptimizer):
             comb_powders = tuple(map(list, combinations(powders_list, len(Jk_dop_list))))
             return comb_powders
 
-    def optimize_one_charge(self, charge, method):
+    def optimize_one_charge(self, omega_sum, charge, method):
 
+        one_mass = 0.5 * omega_sum/len(charge)
         for powd in charge:
-            powd.omega = 0.01 #(self.delta_max * self.params.syst.W0)/(0.5*len(charge))
+            powd.omega = one_mass #(self.delta_max * self.params.syst.W0)/(0.5*len(charge))
 
         self.params.charge = charge
         self.x_vec = np.array([powd.omega for powd in charge])

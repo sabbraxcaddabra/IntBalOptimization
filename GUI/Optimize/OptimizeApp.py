@@ -52,8 +52,13 @@ class Optimization(QtCore.QObject):
 
             finit_imp_lim = float(self.parent.val_FinitImpuls.text())/100
 
-            x_lims = [[0., powd.omega + powd_mass_lim*powd.omega] for powd in self.int_bal_cond.charge] + \
-                [[powd.Jk - finit_imp_lim*powd.Jk, powd.Jk + finit_imp_lim*powd.Jk] for powd in self.int_bal_cond.charge]
+            powd_mass_lims = [[0., powd.omega + powd_mass_lim*powd.omega] for powd in self.int_bal_cond.charge]
+            Jk_lims = [[powd.Jk - finit_imp_lim*powd.Jk, powd.Jk + finit_imp_lim*powd.Jk] for powd in self.int_bal_cond.charge]
+            x_lims = []
+            for lim in zip(powd_mass_lims, Jk_lims):
+                x_lims.extend(lim)
+
+
 
         max_delta = float(self.parent.val_maxDensity.text())
 
@@ -109,6 +114,7 @@ class Optimization(QtCore.QObject):
         # self.parent.textBrowser_optimize.clear()
 
         optimizer._adapt(optimized_xvec)
+        omega_sum = sum(powder.omega for powder in optimizer.params.charge)
 
         if "Jk" in optimizer.adapters.keys():
             optimizer.remove_adapter('Jk')
@@ -128,7 +134,7 @@ class Optimization(QtCore.QObject):
 
         for num, combo in enumerate(combos, start=1):
             try:
-                info_dict = optimizer.optimize_one_charge(combo, method)
+                info_dict = optimizer.optimize_one_charge(omega_sum, combo, method)
                 optimized_combos.append(info_dict)
                 self.combo_info(num, info_dict)
             except:
@@ -317,6 +323,7 @@ class OptimizeApp(QtWidgets.QMainWindow, optimizGUI.Ui_OptimizeWindow):   #По�
         # Проверка данных
         if not self.CheckValue():
             return False
+
 
         # Показываем прогресс бар и лейбл на время расчёта
         self.label_procOptimize.show()
