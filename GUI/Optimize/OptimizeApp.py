@@ -130,7 +130,6 @@ class Optimization(QtCore.QObject):
 
         optimized_combos = []
         n_combos = len(combos)
-        sizer = floor(100/len(combos))
 
         for num, combo in enumerate(combos, start=1):
             try:
@@ -141,7 +140,7 @@ class Optimization(QtCore.QObject):
                 self.new_info.emit(f'Не найдено ни одного оптимума {str(combo)}')
                 continue
 
-            self.progress_bar_updater_sel_comp.emit(sizer * num)
+            self.progress_bar_updater_sel_comp.emit(floor((num/n_combos) * 100))
 
         best = max(optimized_combos, key=lambda info_dict: info_dict['target_func'])
 

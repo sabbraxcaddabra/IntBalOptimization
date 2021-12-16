@@ -19,7 +19,7 @@ class Optimizer(ABC):
     Абстрактный класс-оптимайзер.
     Конкретные реализации алгоритмов оптимизации должны наследоваться от данного класса
     """
-
+    possible_errors = [LimitExeedErroor, FirstGroundBoundaryError, SecondGroundBoundaryError]
     def __init__(self,
                  x_vec,
                  params=None,
@@ -80,18 +80,18 @@ class Optimizer(ABC):
         :return: bool
         """
         if self.first_ground_boundary:
-            for func_dict in self.first_ground_boundary.values():
+            for func_dict_name, func_dict in self.first_ground_boundary.items():
                 res = func_dict['func'](x_vec_cur, self.params, func_dict['lim'])
                 if not res:
                     func_dict['errors'] += 1
-                    raise FirstGroundBoundaryError()
+                    raise FirstGroundBoundaryError(func_dict_name)
 
         if len(self.x_lims) != len(x_vec_cur):
             raise Exception("Длина вектора варьируемых параметров не совпадает с длиной вектора ограничений")
         else:
             check_list = [lim[0] <= x <= lim[1] for lim, x in zip(self.x_lims, x_vec_cur)]
             if not all(check_list):
-                raise LimitExeedEroor()
+                raise LimitExeedErroor(x_vec_cur, self.x_lims)
 
 
     def add_second_ground_boundary(self, name: str, func_dict: dict) -> None:
@@ -114,7 +114,7 @@ class Optimizer(ABC):
         """
 
         if self.second_ground_boundary:
-            for func_dict in self.second_ground_boundary.values():
+            for func_dict_name, func_dict in self.second_ground_boundary.items():
                 res = func_dict['func'](y, solution, self.params, func_dict['lim'])
                 if not res:
                     fine_func = func_dict.get('fine')
@@ -123,7 +123,7 @@ class Optimizer(ABC):
                         func_dict['fines'] += 1
                     else:
                         func_dict['errors'] += 1
-                        raise SecondGroundBoundaryError()
+                        raise SecondGroundBoundaryError(func_dict_name)
         return y
 
     def set_target_func(self, t_func) -> None:
@@ -200,8 +200,12 @@ class RandomScanOptimizer(Optimizer):
             last_x = self.x_vec[:]
             self._adapt(last_x)
             last_f, last_sol = self.t_func(last_x, self.params)
+            last_f = self._check_second_ground_boundary(last_x, last_f, last_sol, self.params)
+        except SecondGroundBoundaryError:
+            pass
+
         except:
-            raise FirstStepOptimizationError()
+            raise FirstStepOptimizationFail()
 
         bad_steps_cur = 0  # Счетчик неудачных шагов
         cur_step_modifier = 1
@@ -282,12 +286,43 @@ class RandomSearchOptimizer(Optimizer):
 
         steps_total = 0
         bad_steps_cur = 1
+
         try:
             last_x = np.ones(len(self.x_vec))
             self._adapt(last_x*self.x_vec)
-            last_f, last_sol = self.t_func(last_x, self.params)
-        except:
-            raise FirstStepOptimizationError()
+            self._check_first_ground_boundary(last_x*self.x_vec)
+            last_f, last_sol = self.t_func(last_x*self.x_vec, self.params)
+            last_f = self._check_second_ground_boundary(last_x*self.x_vec, last_f, last_sol, self.params)
+
+        except LimitExeedErroor as raised_error:
+
+            new_rised_error = FirstStepOptimizationFail(error=raised_error)
+            raise new_rised_error
+
+        except FirstGroundBoundaryError as raised_error:
+
+            new_rised_error = FirstStepOptimizationFail(error=raised_error)
+            raise new_rised_error
+
+        except SecondGroundBoundaryError as raised_error:
+            info_dict = {
+                'x_vec': last_x*self.x_vec,
+                'sol': last_sol,
+                'target_func': last_f,
+            }
+            if self.out_func:
+                out_func_message = self.out_func(last_x*self.x_vec, last_f, last_sol, self.params)
+                new_raised_error = FirstStepOptimizationFail(error=raised_error, t_func_info=info_dict,
+                                                             out_message=out_func_message)
+            else:
+                new_raised_error = FirstStepOptimizationFail(error=raised_error, t_func_info=info_dict)
+
+            raise new_raised_error
+
+        except BaseException as raised_error:
+            raise FirstStepOptimizationFail(error=raised_error)
+
+
 
         while steps_total < N:
             while bad_steps_cur < M:
@@ -316,7 +351,7 @@ class RandomSearchOptimizer(Optimizer):
                             bad_steps_cur += 1
                     else:
                         bad_steps_cur += 1
-                except LimitExeedEroor:
+                except LimitExeedErroor:
                     above_limits += 1
                 except:
                     bad_steps_cur += 1
@@ -327,7 +362,8 @@ class RandomSearchOptimizer(Optimizer):
                     summary = self.get_optimization_summary(above_limits, target_func_calculated)
                     return last_x * self.x_vec, last_f, last_sol, summary
                 else:
-                    raise MinStepOptimizerError()
+                    summary = self.get_optimization_summary(above_limits, target_func_calculated)
+                    raise MinStepOptimizerError(summary)
             else:
                 t0 *= beta
                 bad_steps_cur = 1
@@ -337,4 +373,5 @@ class RandomSearchOptimizer(Optimizer):
             summary = self.get_optimization_summary(above_limits, target_func_calculated)
             return last_x * self.x_vec, last_f, last_sol, summary
         else:
-            raise TooMuchItersOptimizerError()
+            summary = self.get_optimization_summary(above_limits, target_func_calculated)
+            raise TooMuchItersOptimizerError(summary)

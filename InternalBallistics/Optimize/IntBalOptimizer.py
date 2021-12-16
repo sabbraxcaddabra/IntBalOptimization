@@ -1,4 +1,5 @@
 from Optimization.RandomOptimization.Optimizers import *
+from Optimization.OptimizationErrors import *
 from InternalBallistics.IntBalClasses import *
 from InternalBallistics.ErrorClasses import NoOneCombo
 from InternalBallistics.Optimize.TargetFucntions import max_speed_t_func
@@ -106,6 +107,14 @@ class IntBalOptimizer(RandomScanOptimizer, RandomSearchOptimizer):
         :return: Кортеж всех возможных комбинаций порохов
         """
 
+        """
+        Функция читающая базу порохов и по допустимым конечным импульсам(полученным в результате решения обобщенной задачи)
+        возвращающая кортеж всех возможных комбинаций порохов
+        :param Jk_dop_list: Итерируемый объект с допустимыми конечными импульсами(список/кортеж и тд.)
+        :param max_tol: Максимальная ошибка по конечному импульсу
+        :return: Кортеж всех возможных комбинаций порохов
+        """
+
         def check_Jk(powder, Jk_dop, max_tol):
             tol = abs((powder.Jk / Jk_dop) * 100 - 100)
             if tol <= max_tol:
@@ -195,7 +204,7 @@ class IntBalOptimizer(RandomScanOptimizer, RandomSearchOptimizer):
         return info_dict
 
     def get_optimized_powders_mass(self, optimized_xvec, method='random_search'):
-        self.out_func = None
+        #self.out_func = None
 
         self._adapt(optimized_xvec)
 
@@ -212,15 +221,17 @@ class IntBalOptimizer(RandomScanOptimizer, RandomSearchOptimizer):
 
         optimized_combos = []
 
-        # with Pool(3) as p:
-        #     res = p.map(self.optimize_one_charge, combos)
-
         for combo in combos:
             try:
                 info_dict = self.optimize_one_charge(omega_sum, combo, method)
                 optimized_combos.append(info_dict)
+            except FirstStepOptimizationFail as first_step_error:
+                print(first_step_error)
+            except MinStepOptimizerError as no_optimum:
+                print(no_optimum)
             except:
-                pass
+                print('Хз че это было', combo, sep='\t')
+
 
 
         optimized_combos.sort(key=lambda info_dict: info_dict['target_func'], reverse=True)
