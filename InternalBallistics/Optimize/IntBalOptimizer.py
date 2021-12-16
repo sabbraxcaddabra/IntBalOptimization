@@ -1,4 +1,5 @@
 from Optimization.RandomOptimization.Optimizers import *
+from Optimization.OptimizationErrors import *
 from InternalBallistics.IntBalClasses import *
 from InternalBallistics.ErrorClasses import NoOneCombo
 from InternalBallistics.Optimize.TargetFucntions import max_speed_t_func
@@ -203,7 +204,7 @@ class IntBalOptimizer(RandomScanOptimizer, RandomSearchOptimizer):
         return info_dict
 
     def get_optimized_powders_mass(self, optimized_xvec, method='random_search'):
-        self.out_func = None
+        #self.out_func = None
 
         self._adapt(optimized_xvec)
 
@@ -224,8 +225,13 @@ class IntBalOptimizer(RandomScanOptimizer, RandomSearchOptimizer):
             try:
                 info_dict = self.optimize_one_charge(omega_sum, combo, method)
                 optimized_combos.append(info_dict)
+            except FirstStepOptimizationFail as first_step_error:
+                print(first_step_error)
+            except MinStepOptimizerError as no_optimum:
+                print(no_optimum)
             except:
-                pass
+                print('Хз че это было', combo, sep='\t')
+
 
 
         optimized_combos.sort(key=lambda info_dict: info_dict['target_func'], reverse=True)
