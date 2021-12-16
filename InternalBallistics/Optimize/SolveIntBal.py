@@ -107,7 +107,12 @@ def solve_ib(P0, igniter, k50, S, W0, l_k, l_ps, omega_sum, qfi, l_d, powders, t
             lk = y[1]
         if t0 > tmax:
             raise TooMuchTime()
-    return y, p_mean_max, p_sn_max, p_kn_max, lk
+    psi_sum = 0
+    for i, powder in enumerate(powders):
+        y[2+i] = psi(y[2 + i], *powder[7:])
+        psi_sum += y[2+i]*powder.omega
+    psi_sum /= omega_sum
+    return y, p_mean_max, p_sn_max, p_kn_max, psi_sum, lk/l_d
 
 @njit
 def solve_ib_ab5(P0, PV, k50, S, W0, l_k, l_ps, omega_sum, qfi, l_d, powders, tmax = 1. , tstep = 1e-5):
