@@ -8,6 +8,7 @@ class TooMuchItersOptimizerError(Exception):
         return "Не найдено ни одного оптимума. Достигнут минимальный шаг\n" \
                "Попробуйте меньший шаг или большее максимальное число итераций" + '\n' + str(self.optimization_summary)
 
+
 class MinStepOptimizerError(Exception):
 
     def __init__(self, optimization_summary: dict):
@@ -18,6 +19,7 @@ class MinStepOptimizerError(Exception):
         return "Не найдено ни одного оптимума. Достигнут минимальный шаг\n" \
                "Попробуйте меньший шаг или большее максимальное число итераций" + '\n' + str(self.optimization_summary)
 
+
 class SecondGroundBoundaryError(Exception):
 
     def __init__(self, name):
@@ -26,6 +28,7 @@ class SecondGroundBoundaryError(Exception):
 
     def __str__(self):
         return f'Ограничение второго рода {self.name} не пройдено.'
+
 
 class FirstGroundBoundaryError(Exception):
 
@@ -36,23 +39,26 @@ class FirstGroundBoundaryError(Exception):
     def __str__(self):
         return f'Ограничение первого рода {self.name} не пройдено.'
 
-class LimitExeedErroor(Exception):
+
+class LimitExceedError(Exception):
 
     def __init__(self, x_vec, x_lims):
-
         self.x_vec = list(x_vec)
         self.x_lims = list(x_lims)
 
+    def __str__(self):
+        return f'Вектор варьируемых параметров за границей поиска.'
+
+
+class UnknownError(Exception):
 
     def __str__(self):
-        return f'Вектор варьируемых параметров за границей поиска'
+        return "Неизвестная ошибка в целевой функции."
 
-class UnknowedError(Exception):
-    pass
 
 class FirstStepOptimizationFail(Exception):
 
-    def __init__(self, error=UnknowedError(), t_func_info=None, out_message=None,
+    def __init__(self, error=UnknownError(), t_func_info=None, out_message=None,
                  message="Ошибка при первой попытке вычисления целевой функции.\n"):
         self.error = error
         self.t_func_info = t_func_info
@@ -63,11 +69,6 @@ class FirstStepOptimizationFail(Exception):
         self.message = message
         super().__init__(self.message)
 
-
     def __str__(self):
         return self.message + '\n' + str(self.error) + '\n' + self.out_message
 
-class UnknowedError(Exception):
-
-    def __str__(self):
-        return "Неизвестная ошибка в целевой функции"

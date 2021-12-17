@@ -81,7 +81,7 @@ class AnalysisApp(QtWidgets.QMainWindow, analysisGUI.Ui_AnalysWindow):   #Пом
         self.result_table.horizontalHeader().setSectionResizeMode(QHeaderView.Stretch)
 
         # Чиним таблицу с результатами
-        self.FixTableWindows10(self.result_table)
+        self.FixTableWindows7_10(self.result_table)
 
         # Блокируем вкладку графика
         self.ResWindow.setTabEnabled(1, False)
@@ -95,7 +95,7 @@ class AnalysisApp(QtWidgets.QMainWindow, analysisGUI.Ui_AnalysWindow):   #Пом
         self.butt_close.clicked.connect(self.close)                         # Событие кнопки "Закрыть"
 
     # Метод чинит таблицу с результатам на Win10
-    def FixTableWindows10(self, tableName):
+    def FixTableWindows7_10(self, tableName):
         def SetStyle():
             tableName.setStyleSheet(
                 "QHeaderView::section{"

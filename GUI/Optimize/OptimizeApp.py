@@ -1,6 +1,6 @@
 import numpy as np
 from math import floor
-
+from Optimization.OptimizationErrors import *
 from PyQt5.QtWidgets import QMessageBox
 
 from GUI.Optimize import optimizGUI                      #конвертированный в .py фал дизайна окна анализа
@@ -20,11 +20,15 @@ class Optimization(QtCore.QObject):
     new_info = QtCore.pyqtSignal(str)
     progress_bar_updater = QtCore.pyqtSignal(int)
     progress_bar_updater_sel_comp = QtCore.pyqtSignal(int)
+    error_signal = QtCore.pyqtSignal(object)
+
     counter = 0
 
     def __init__(self, parent):
         QtCore.QObject.__init__(self)
         self.parent = parent
+
+
 
     def run(self):
         methods = {
@@ -90,8 +94,22 @@ class Optimization(QtCore.QObject):
             self.new_info.emit(text)
             self.pick_up_optimum_charge(optimizer, optimized_xvec, method)
         else:
-            optimizer.out_func = self.out_func
-            optimized_xvec = optimizer.optimize_with_Jk(method)[0]
+            try:
+                optimizer.out_func = self.out_func
+                optimized_xvec = optimizer.optimize_with_Jk(method)[0]
+
+            except FirstStepOptimizationFail as E:
+                self.error_signal.emit(E)
+
+
+            except MinStepOptimizerError as E:
+                self.error_signal.emit(E)
+            except:
+                print('Всё пошло не так как хотелось бы. Однако нужно ли это и то ли это что должно было ли быть?! Вопрос с философсикм подходм личного моего мнения у меня нет')
+
+
+
+
         self.finished.emit()
 
     def combo_info(self, num, info_dict):
@@ -163,6 +181,7 @@ class Optimization(QtCore.QObject):
         for powd in params.charge:
             text += f"Масса пороха {powd.name}: {round(powd.omega, 4)} кг\n"
             text += f"Конечный импульс пороха {powd.name}: {round(powd.Jk*1e-3, 2)} кПа*с\n"
+
         text += f"Дульная скорость: {-round(f, 1)} м/с\n"
         text += f"Максимальное среднебаллистическое давление: {round(sol[0] * 1e-6, 2)} МПа\n"
         text += f"Максимальное давление на дно снаряда: {round(sol[1] * 1e-6, 2)} МПа\n"
@@ -174,6 +193,7 @@ class Optimization(QtCore.QObject):
         self.new_info.emit(text)
         self.progress_bar_updater.emit(self.counter)
         QtCore.QThread.msleep(100)
+        return text
 
 
 # В этом классе прописываются все взаимодействия с окном ОПТИМИЗАЦИИ
@@ -204,7 +224,18 @@ class OptimizeApp(QtWidgets.QMainWindow, optimizGUI.Ui_OptimizeWindow):   #По�
             self.label_coordGor.setDisabled(True)
             self.val__coordGor.setDisabled(True)
 
-
+    # Вызов окна ошибки
+    @QtCore.pyqtSlot(object)
+    def ErrorWindow(self, E):
+        E = str(E)
+        errorOptimize = QMessageBox()
+        errorOptimize.setWindowTitle("Ошибка в процессе оптимизации")
+        errorOptimize.setText(E)
+        errorOptimize.setIcon(QMessageBox.Critical)
+        errorOptimize.setStandardButtons(QMessageBox.Cancel)
+        buttCancel = errorOptimize.button(QMessageBox.Cancel)
+        buttCancel.setText("Отмена")
+        errorOptimize.exec()
 
     def handleItemPressed(self, index):
         item = self.comboBox_MethOptimize.model().itemFromIndex(index)
@@ -341,6 +372,7 @@ class OptimizeApp(QtWidgets.QMainWindow, optimizGUI.Ui_OptimizeWindow):   #По�
         self.browserHandler.new_info.connect(self.add_new_text)
         self.browserHandler.progress_bar_updater.connect(self.update_progress_bar)
         self.browserHandler.progress_bar_updater_sel_comp.connect(self.update_progress_bar_select_components)
+        self.browserHandler.error_signal.connect(self.ErrorWindow)
 
         # подключим сигнал старта потока к методу run у объекта, который должен выполнять код в другом потоке
         self.thread.started.connect(self.browserHandler.run)

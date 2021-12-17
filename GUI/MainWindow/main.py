@@ -54,8 +54,8 @@ class InitApp(QtWidgets.QMainWindow, initGUI.Ui_MainWindow):
         self.FillTable()            # Заполняем таблицы
 
         # Корректируем таблицы
-        FixTableWindows10(self.tableInitArtSys)
-        FixTableWindows10(self.tableInitPowders)
+        FixTableWindows7_10(self.tableInitArtSys)
+        FixTableWindows7_10(self.tableInitPowders)
 
 
 
@@ -141,6 +141,11 @@ class InitApp(QtWidgets.QMainWindow, initGUI.Ui_MainWindow):
         self.tableInitPowders.verticalHeader().setFont(QFont('MS Shell Dlg 2', 10))
         self.tableInitPowders.verticalHeader().setDefaultAlignment(QtCore.Qt.AlignCenter)
         self.tableInitPowders.verticalHeader().setSectionResizeMode(QHeaderView.Stretch)
+        # Настройка выравнивания текста
+
+
+
+
 
         # Таблица арт систем
 
@@ -651,7 +656,7 @@ class PowdersApp(QtWidgets.QMainWindow, powdersGUI.Ui_PowdersWindow):
         self.tableCharPowders.removeRow(row)                                                            #В конце удаляем лишнюю строку
         F.close()                                                                                       #Закрываем файл
         # Чиним таблицу
-        FixTableWindows10(self.tableCharPowders)
+        FixTableWindows7_10(self.tableCharPowders)
         # Скрываем лейбл с названием
         self.label.hide()
 
@@ -733,7 +738,7 @@ class ArtSysApp(QtWidgets.QMainWindow, artsysGUI.Ui_ArtSysWindow):
         F.close()
 
         # Чиним таблицу
-        FixTableWindows10(self.tableCharArtSys)
+        FixTableWindows7_10(self.tableCharArtSys)
         # Скрываем название выбранной арт. системы
         self.label.hide()
         #Обрабатываем события
@@ -777,7 +782,7 @@ class ArtSysApp(QtWidgets.QMainWindow, artsysGUI.Ui_ArtSysWindow):
     # Метод чинит отображение таблиц на Win10
 
 
-def FixTableWindows10(tableName):
+def FixTableWindows7_10(tableName):
     def SetStyle():
         tableName.setStyleSheet(
             "QHeaderView::section{"
@@ -802,9 +807,9 @@ def FixTableWindows10(tableName):
             "}"
         )
 
-    if QSysInfo.windowsVersion() == QSysInfo.WV_WINDOWS10:  # Может вообще убрать? Зависит от ОС
-        SetStyle()
-        print('helo')
+
+    SetStyle()
+
 
 #Функция вызывает окно исходных данных
 def InitWin():
