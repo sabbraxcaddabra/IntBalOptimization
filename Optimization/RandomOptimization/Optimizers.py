@@ -19,7 +19,7 @@ class Optimizer(ABC):
     Абстрактный класс-оптимайзер.
     Конкретные реализации алгоритмов оптимизации должны наследоваться от данного класса
     """
-    possible_errors = [LimitExeedErroor, FirstGroundBoundaryError, SecondGroundBoundaryError]
+    possible_errors = [LimitExceedError, FirstGroundBoundaryError, SecondGroundBoundaryError]
     def __init__(self,
                  x_vec,
                  params=None,
@@ -91,7 +91,7 @@ class Optimizer(ABC):
         else:
             check_list = [lim[0] <= x <= lim[1] for lim, x in zip(self.x_lims, x_vec_cur)]
             if not all(check_list):
-                raise LimitExeedErroor(x_vec_cur, self.x_lims)
+                raise LimitExceedError(x_vec_cur, self.x_lims)
 
 
     def add_second_ground_boundary(self, name: str, func_dict: dict) -> None:
@@ -294,15 +294,11 @@ class RandomSearchOptimizer(Optimizer):
             last_f, last_sol = self.t_func(last_x*self.x_vec, self.params)
             last_f = self._check_second_ground_boundary(last_x*self.x_vec, last_f, last_sol, self.params)
 
-        except LimitExeedErroor as raised_error:
+        except LimitExceedError or FirstGroundBoundaryError as raised_error:
 
             new_rised_error = FirstStepOptimizationFail(error=raised_error)
             raise new_rised_error
 
-        except FirstGroundBoundaryError as raised_error:
-
-            new_rised_error = FirstStepOptimizationFail(error=raised_error)
-            raise new_rised_error
 
         except SecondGroundBoundaryError as raised_error:
             info_dict = {
@@ -310,6 +306,7 @@ class RandomSearchOptimizer(Optimizer):
                 'sol': last_sol,
                 'target_func': last_f,
             }
+
             if self.out_func:
                 out_func_message = self.out_func(last_x*self.x_vec, last_f, last_sol, self.params)
                 new_raised_error = FirstStepOptimizationFail(error=raised_error, t_func_info=info_dict,
@@ -351,7 +348,7 @@ class RandomSearchOptimizer(Optimizer):
                             bad_steps_cur += 1
                     else:
                         bad_steps_cur += 1
-                except LimitExeedErroor:
+                except LimitExceedError:
                     above_limits += 1
                 except:
                     bad_steps_cur += 1

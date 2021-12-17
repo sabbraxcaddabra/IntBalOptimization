@@ -50,17 +50,17 @@ if __name__ == "__main__":
 
 
 
-    x_vec = np.array([0.07, 343.8e3, 0.03, 343.8e3])#, 0.02, 343.8e3])#, 0.05, 343.8e3])
-    weights = [0.2, 0.6, 0.2, 0.6]#, 0.2, 0.6]
+    x_vec = np.array([0.07, 343.8e3, 0.05, 343.8e3])#, 0.02, 343.8e3])#, 0.05, 343.8e3])
+    weights = [2.2, 0.6, 0.2, 0.6]#, 0.2, 0.6]
     # xlims = [[nom - nom*weight, nom + nom*weight] for nom, weight in zip(x_vec, weights)]
     xlims = [[0., np.inf] for nom, weight in zip(x_vec, weights)]
     opt = IntBalOptimizer(x_vec, out_func=out_bal_func,
                                 params=int_bal_cond,
-                                x_lims=xlims, Pmax=500e6, max_eta_k=1, delta_max=1666)
+                                x_lims=xlims, Pmax=373e6, max_eta_k=None, delta_max=1666)
 
 
     opt.set_target_func(max_speed_t_func)
     xx, ff, ss, summary = opt.optimize_with_Jk(method='random_search')
     print(summary)
-    opt.out_func = out_bal_func2
-    opt.get_optimized_powders_mass(xx)
+    # opt.out_func = out_bal_func2
+    # opt.get_optimized_powders_mass(xx)
