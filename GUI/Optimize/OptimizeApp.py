@@ -36,7 +36,7 @@ class Optimization(QtCore.QObject):
             'Случайное сканирование': 'random_scan'
         }
 
-        method = methods[self.parent.comboBox_MethOptimize.currentText()]
+        #method = methods[self.parent.comboBox_MethOptimize.currentText()]
 
         self.int_bal_cond = self.parent.parent.set_int_bal_cond()
 
@@ -47,20 +47,20 @@ class Optimization(QtCore.QObject):
 
         x_vec = np.array(x_vec)
 
-        combo_index = self.parent.comboBox_MethOptimize.currentIndex()
+        #combo_index = self.parent.comboBox_MethOptimize.currentIndex()
 
-        if combo_index == 0:
-            x_lims = [[0, np.inf] for _ in range(len(x_vec))]
-        else:
-            powd_mass_lim = float(self.parent.val_massPowd.text())/100.
-
-            finit_imp_lim = float(self.parent.val_FinitImpuls.text())/100
-
-            powd_mass_lims = [[0., powd.omega + powd_mass_lim*powd.omega] for powd in self.int_bal_cond.charge]
-            Jk_lims = [[powd.Jk - finit_imp_lim*powd.Jk, powd.Jk + finit_imp_lim*powd.Jk] for powd in self.int_bal_cond.charge]
-            x_lims = []
-            for lim in zip(powd_mass_lims, Jk_lims):
-                x_lims.extend(lim)
+        #if combo_index == 0:
+        x_lims = [[0, np.inf] for _ in range(len(x_vec))]
+        # else:
+        #     powd_mass_lim = float(self.parent.val_massPowd.text())/100.
+        #
+        #     finit_imp_lim = float(self.parent.val_FinitImpuls.text())/100
+        #
+        #     powd_mass_lims = [[0., powd.omega + powd_mass_lim*powd.omega] for powd in self.int_bal_cond.charge]
+        #     Jk_lims = [[powd.Jk - finit_imp_lim*powd.Jk, powd.Jk + finit_imp_lim*powd.Jk] for powd in self.int_bal_cond.charge]
+        #     x_lims = []
+        #     for lim in zip(powd_mass_lims, Jk_lims):
+        #         x_lims.extend(lim)
 
 
 
@@ -78,8 +78,10 @@ class Optimization(QtCore.QObject):
 
 
         if self.parent.checkBox_SelComp.isChecked():
+
+            residuals = float(self.parent.val__resid.text())
             optimizer.out_func = None
-            optimized_xvec, optimized_f, optimized_sol, optimized_summary = optimizer.optimize_with_Jk(method)
+            optimized_xvec, optimized_f, optimized_sol, optimized_summary = optimizer.optimize_with_Jk()
             optimizer._adapt(optimized_xvec)
             text = 'Лучший вариант\n'
             for powd in optimizer.params.charge:
@@ -92,14 +94,15 @@ class Optimization(QtCore.QObject):
             text += f"Относительная масса сгоревшего пороха {round(optimized_sol[3], 2)} \n"
             text += f"Относительная координата полного сгорания порохового заряда {round(optimized_sol[4], 3)}\n"
             self.new_info.emit(text)
-            self.pick_up_optimum_charge(optimizer, optimized_xvec, method)
+            self.pick_up_optimum_charge(optimizer, optimized_xvec, residuals)
         else:
             try:
                 optimizer.out_func = self.out_func
-                optimized_xvec = optimizer.optimize_with_Jk(method)[0]
+                optimized_xvec = optimizer.optimize_with_Jk()[0]
 
             except FirstStepOptimizationFail as E:
                 self.error_signal.emit(E)
+
 
 
             except MinStepOptimizerError as E:
@@ -127,7 +130,7 @@ class Optimization(QtCore.QObject):
         self.new_info.emit(text)
 
 
-    def pick_up_optimum_charge(self, optimizer, optimized_xvec, method):
+    def pick_up_optimum_charge(self, optimizer, optimized_xvec, max_tol):
 
         # self.parent.textBrowser_optimize.clear()
 
@@ -142,7 +145,7 @@ class Optimization(QtCore.QObject):
 
         Jk_dop_list = [powd.Jk for powd in optimizer.params.charge]
 
-        combos = optimizer.get_powder_combination(Jk_dop_list)
+        combos = optimizer.get_powder_combination(Jk_dop_list, max_tol)
 
         self.new_info.emit(f'\nНайдено {len(combos)} комбинаций порохов\n')
 
@@ -151,12 +154,12 @@ class Optimization(QtCore.QObject):
 
         for num, combo in enumerate(combos, start=1):
             try:
-                info_dict = optimizer.optimize_one_charge(omega_sum, combo, method)
+                info_dict = optimizer.optimize_one_charge(omega_sum, combo, 'random_search')
                 optimized_combos.append(info_dict)
                 self.combo_info(num, info_dict)
-            except:
+            except FirstStepOptimizationFail or MinStepOptimizerError as E:
                 self.new_info.emit(f'Не найдено ни одного оптимума {str(combo)}')
-                continue
+                self.new_info.emit(str(E))
 
             self.progress_bar_updater_sel_comp.emit(floor((num/n_combos) * 100))
 
@@ -188,7 +191,7 @@ class Optimization(QtCore.QObject):
         text += f"Максимальное давление на дно канала ствола: {round(sol[2] * 1e-6, 2)} МПа\n"
         text += f"Относительная масса сгоревшего пороха {round(sol[3], 2)}\n"
         text += f"Относительная координата полного сгорания заряда {round(sol[4], 3)}\n"
-        text += "*" * 30 + '\n'
+        text += "_" * 53 + '\n'
         self.counter += 1
         self.new_info.emit(text)
         self.progress_bar_updater.emit(self.counter)
@@ -209,8 +212,9 @@ class OptimizeApp(QtWidgets.QMainWindow, optimizGUI.Ui_OptimizeWindow):   #По�
 
         self.butt_Start.clicked.connect(self.do_optimize)
 
-        self.comboBox_MethOptimize.view().pressed.connect(self.handleItemPressed)
+        #self.comboBox_MethOptimize.view().pressed.connect(self.handleItemPressed)
         self.checkBox_regGor.stateChanged.connect(self.checkRegGor)
+        self.checkBox_SelComp.stateChanged.connect(self.checkRegResid)
         self.butt_close.clicked.connect(self.close)
 
     #Метод учёта догорания заряда
@@ -224,9 +228,24 @@ class OptimizeApp(QtWidgets.QMainWindow, optimizGUI.Ui_OptimizeWindow):   #По�
             self.label_coordGor.setDisabled(True)
             self.val__coordGor.setDisabled(True)
 
+
+
+    #Метод учета невязки по конечному импульсу
+    def checkRegResid(self):
+        if self.checkBox_SelComp.isChecked():
+            self.val__resid.clear()
+            self.label_resid.setEnabled(True)
+            self.val__resid.setEnabled(True)
+            self.val__resid.setText("15")
+        else:
+            self.val__resid.clear()
+            self.label_resid.setDisabled(True)
+            self.val__resid.setDisabled(True)
+
     # Вызов окна ошибки
     @QtCore.pyqtSlot(object)
     def ErrorWindow(self, E):
+        self.textBrowser_optimize.clear()
         E = str(E)
         errorOptimize = QMessageBox()
         errorOptimize.setWindowTitle("Ошибка в процессе оптимизации")
@@ -237,21 +256,21 @@ class OptimizeApp(QtWidgets.QMainWindow, optimizGUI.Ui_OptimizeWindow):   #По�
         buttCancel.setText("Отмена")
         errorOptimize.exec()
 
-    def handleItemPressed(self, index):
-        item = self.comboBox_MethOptimize.model().itemFromIndex(index)
-        if item.row() == 1:
-            self.label_massPowd.setEnabled(True)
-            self.label_FinitImpuls.setEnabled(True)
-            self.val_massPowd.setEnabled(True)
-            self.val_FinitImpuls.setEnabled(True)
-
-        if item.row() == 0:
-            self.label_massPowd.setDisabled(True)
-            self.label_FinitImpuls.setDisabled(True)
-            self.val_massPowd.setDisabled(True)
-            self.val_FinitImpuls.setDisabled(True)
-            self.val_massPowd.clear()
-            self.val_FinitImpuls.clear()
+    # def handleItemPressed(self, index):
+    #     item = self.comboBox_MethOptimize.model().itemFromIndex(index)
+    #     if item.row() == 1:
+    #         self.label_massPowd.setEnabled(True)
+    #         self.label_FinitImpuls.setEnabled(True)
+    #         self.val_massPowd.setEnabled(True)
+    #         self.val_FinitImpuls.setEnabled(True)
+    #
+    #     if item.row() == 0:
+    #         self.label_massPowd.setDisabled(True)
+    #         self.label_FinitImpuls.setDisabled(True)
+    #         self.val_massPowd.setDisabled(True)
+    #         self.val_FinitImpuls.setDisabled(True)
+    #         self.val_massPowd.clear()
+    #         self.val_FinitImpuls.clear()
 
     # Метод выполняет проверку всех введённых данных
     def CheckValue(self):
@@ -282,31 +301,41 @@ class OptimizeApp(QtWidgets.QMainWindow, optimizGUI.Ui_OptimizeWindow):   #По�
         # Пытаемся значение ячейки преобразовать во float, если не получается - выводим диалоговое с ошибкой
         try:
             maxDensity = float(maxDensity)
+            if maxDensity <= 0:
+                errorText = "Максимальная плотность заряжания должна быть больше нуля!"
+                ErrorDialog(errorText)
+                return False
+
         except ValueError:
             errorText = "Ограничения 1-го рода заданны некорректно!"
             ErrorDialog(errorText)
             return False
 
-        if self.comboBox_MethOptimize.currentIndex() == 1:
-            massPowd = self.val_massPowd.text()
-            FinitImpuls = self.val_FinitImpuls.text()
-            if not massPowd or not FinitImpuls:
-                errorText = "Укажите все ограничения 1-го рода!"
+        if self.checkBox_SelComp.isChecked():
+
+
+            resid = self.val__resid.text()
+            if not resid:
+                errorText = "Укажите значение невязки!"
                 ErrorDialog(errorText)
                 return False
-            # Меняем запятую на точку
-            massPowd = massPowd.replace(",", ".")
-            self.val_massPowd.setText(massPowd)
 
-            FinitImpuls = FinitImpuls.replace(",", ".")
-            self.val_FinitImpuls.setText(FinitImpuls)
+            # Меняем запятую на точку
+            resid = resid.replace(",", ".")
+            self.val__resid.setText(resid)
+
 
             # Пытаемся значение ячейки преобразовать во float, если не получается - выводим диалоговое с ошибкой
             try:
-                massPowd = float(massPowd)
-                FinitImpuls = float(FinitImpuls)
+                resid = float(resid)
+                if (resid > 100) or (resid <= 0):
+                    errorText = "Значение невязки должно быть более 0% и менее 100%!"
+                    ErrorDialog(errorText)
+                    return False
+
+
             except ValueError:
-                errorText = "Ограничения 1-го рода заданны некорректно!"
+                errorText = "Значение невязки заданно некорректно!"
                 ErrorDialog(errorText)
                 return False
 
@@ -325,6 +354,11 @@ class OptimizeApp(QtWidgets.QMainWindow, optimizGUI.Ui_OptimizeWindow):   #По�
         # Пытаемся значение ячейки преобразовать во float, если не получается - выводим диалоговое с ошибкой
         try:
             maxPress = float(maxPress)
+            if maxPress <= 0:
+                errorText = "Максимальное давление должно быть более нуля!"
+                ErrorDialog(errorText)
+                return False
+
         except ValueError:
             errorText = "Ограничения 2-го рода заданны некорректно!"
             ErrorDialog(errorText)
@@ -342,6 +376,11 @@ class OptimizeApp(QtWidgets.QMainWindow, optimizGUI.Ui_OptimizeWindow):   #По�
             # Пытаемся значение ячейки преобразовать во float, если не получается - выводим диалоговое с ошибкой
             try:
                 coordGor = float(coordGor)
+                if (coordGor > 1) or (coordGor <=0 ):
+                    errorText = "Значение относ. координаты должно быть более 0 и менее 1!"
+                    ErrorDialog(errorText)
+                    return False
+
             except ValueError:
                 errorText = "Ограничения 2-го рода заданны некорректно!"
                 ErrorDialog(errorText)
@@ -355,7 +394,8 @@ class OptimizeApp(QtWidgets.QMainWindow, optimizGUI.Ui_OptimizeWindow):   #По�
         # Проверка данных
         if not self.CheckValue():
             return False
-
+        # Чистим листинг
+        self.textBrowser_optimize.clear()
 
         # Показываем прогресс бар и лейбл на время расчёта
         self.label_procOptimize.show()

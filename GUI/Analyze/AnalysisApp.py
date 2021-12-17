@@ -152,6 +152,11 @@ class AnalysisApp(QtWidgets.QMainWindow, analysisGUI.Ui_AnalysWindow):   #Пом
         # Пытаемся значение ячейки преобразовать во float, если не получается - выводим диалоговое с ошибкой
         try:
             Step = float(Step)
+            if Step <=0:
+                errorText = "Шаг расчёта должен быть более нуля!"
+                ErrorDialog(errorText)
+                return False
+
         except ValueError:
             errorText = "Шаг расчёта задан некорректно!"
             ErrorDialog(errorText)

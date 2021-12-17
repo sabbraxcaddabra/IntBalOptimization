@@ -60,10 +60,6 @@ class InitApp(QtWidgets.QMainWindow, initGUI.Ui_MainWindow):
 
 
 
-
-
-
-
     # Метод заполняет таблицы порохов и арт. системы
 
     def FillTable(self):
@@ -191,6 +187,11 @@ class InitApp(QtWidgets.QMainWindow, initGUI.Ui_MainWindow):
         #self.tableInitArtSys.verticalHeader().setDefaultAlignment(QtCore.Qt.AlignCenter)
         self.tableInitArtSys.verticalHeader().setSectionResizeMode(QHeaderView.Stretch)
         self.tableInitArtSys.horizontalHeader().setSectionResizeMode(QHeaderView.Stretch)
+        # Выравниваем текст в таблице порохов
+        for i in range(9):
+            item = QtWidgets.QTableWidgetItem()
+            item.setTextAlignment(QtCore.Qt.AlignCenter)
+            self.tableInitArtSys.setItem(i, 0, item)
 
     # Метод масштабирует шрифты, в зависимости от разрешения
     def resizeEvent(self, event):
@@ -559,6 +560,12 @@ class InitApp(QtWidgets.QMainWindow, initGUI.Ui_MainWindow):
                 # Пытаемся значение ячейки преобразовать во float, если не получается - выводим диалоговое с ошибкой
                 try:
                     CellVal = float(CellVal)
+                    if (i > 0) and  (i <= 6):
+                        if CellVal <=0:
+                            errorText = "Некорректное значение параметра в таблице характеристик порохов!"
+                            ErrorDialog(errorText)
+                            return False
+
                 except ValueError:
                     if not CellVal:
                         errorText = "Заполните все данные в таблице порохов!"
@@ -582,6 +589,11 @@ class InitApp(QtWidgets.QMainWindow, initGUI.Ui_MainWindow):
             # Пытаемся значение ячейки преобразовать во float, если не получается - выводим диалоговое с ошибкой
             try:
                 CellVal = float(CellVal)
+                if (i > 0) and (i <= 8):
+                    if CellVal <= 0:
+                        errorText = "Некорректное значение параметра в таблице характеристик арт. систем!"
+                        ErrorDialog(errorText)
+                        return False
             except ValueError:
                 if not CellVal:
                     errorText = "Заполните все данные в таблице арт. систем!"
@@ -614,9 +626,30 @@ class InitApp(QtWidgets.QMainWindow, initGUI.Ui_MainWindow):
 
             # Пытаемся значение ячейки преобразовать во float, если не получается - выводим диалоговое с ошибкой
         try:
+
             PressIgnit = float(PressIgnit)
+            if PressIgnit <= 0:
+
+                if self.combo_regIgnit.currentIndex() == 0:
+                    errorText = "Давление воспламенителя должно быть больше нуля!"
+                    ErrorDialog(errorText)
+                    return False
+                else:
+                    errorText = "Масса воспламенителя должна быть больше нуля!"
+                    ErrorDialog(errorText)
+                    return False
+
             PressForc = float(PressForc)
+            if PressForc <= 0:
+                errorText = "Давление форсирования должно быть больше нуля!"
+                ErrorDialog(errorText)
+                return False
             Temp = float(Temp)
+            if (Temp > 50) or (Temp < -50):
+                errorText = "Температура МЗ должна лежать в пределе от -50 до +50 градусов!"
+                ErrorDialog(errorText)
+                return False
+
         except ValueError:
             errorText = "Параметры заряжания заданны некорректно!"
             ErrorDialog(errorText)
