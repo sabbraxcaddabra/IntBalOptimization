@@ -65,10 +65,11 @@ class FirstStepOptimizationFail(Exception):
         if isinstance(out_message, str):
             self.out_message = out_message
         else:
-            self.out_message = ''
+            self.out_message = 'Целевая функция не вычислялась'
         self.message = message
         super().__init__(self.message)
 
     def __str__(self):
-        return self.message + '\n' + str(self.error) + '\n' + self.out_message
+        return self.message + str(self.error) + '\n\n' + 'Детали расчета:' + \
+               '\n' + self.out_message
 

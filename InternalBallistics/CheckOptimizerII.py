@@ -18,16 +18,16 @@ def out_bal_func(x_vec, f, sol, params):
     print("*" * 30 + '\n')
 
 def out_bal_func2(x_vec, f, sol, params):
-    text = f"Масса снаряда: {params.syst.q = } кг"
+    text = f"Масса снаряда: {params.syst.q = } кг\n"
     for powd in params.charge:
-        text += f"Масса пороха {powd.name}: {round(powd.omega, 4)} кг"
-        text += f"Конечный импульс пороха {powd.name}: {round(powd.Jk, 2)} Па*с"
-    text += f"Дульная скорость: {-round(f, 1)} м/с"
-    text +=f"Максимальное среднебаллистическое давление: {round(sol[0] * 1e-6, 2)} МПа"
-    text +=f"Максимальное давление на дно снаряда: {round(sol[1] * 1e-6, 2)} МПа"
-    text +=f"Максимальное давление на дно канала ствола: {round(sol[2] * 1e-6, 2)} МПа"
-    text +=f"Относительная масса сгоревшего пороха {round(sol[3], 4)}"
-    text +=f"Относительная координата полного сгорания порохового заряда {round(sol[4], 4)}"
+        text += f"Масса пороха {powd.name}: {round(powd.omega, 4)} кг\n"
+        text += f"Конечный импульс пороха {powd.name}: {round(powd.Jk, 2)} Па*с\n"
+    text += f"Дульная скорость: {-round(f, 1)} м/с\n"
+    text +=f"Максимальное среднебаллистическое давление: {round(sol[0] * 1e-6, 2)} МПа\n"
+    text +=f"Максимальное давление на дно снаряда: {round(sol[1] * 1e-6, 2)} МПа\n"
+    text +=f"Максимальное давление на дно канала ствола: {round(sol[2] * 1e-6, 2)} МПа\n"
+    text +=f"Относительная масса сгоревшего пороха {round(sol[3], 4)}\n"
+    text +=f"Относительная координата полного сгорания порохового заряда {round(sol[4], 4)}\n"
     text += "*" * 30 + '\n'
     return text
 
@@ -54,9 +54,9 @@ if __name__ == "__main__":
     weights = [2.2, 0.6, 0.2, 0.6]#, 0.2, 0.6]
     # xlims = [[nom - nom*weight, nom + nom*weight] for nom, weight in zip(x_vec, weights)]
     xlims = [[0., np.inf] for nom, weight in zip(x_vec, weights)]
-    opt = IntBalOptimizer(x_vec, out_func=out_bal_func,
+    opt = IntBalOptimizer(x_vec, out_func=out_bal_func2,
                                 params=int_bal_cond,
-                                x_lims=xlims, Pmax=373e6, max_eta_k=None, delta_max=1666)
+                                x_lims=xlims, Pmax=500e6, max_eta_k=None, delta_max=166)
 
 
     opt.set_target_func(max_speed_t_func)
