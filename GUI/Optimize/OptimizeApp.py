@@ -81,20 +81,23 @@ class Optimization(QtCore.QObject):
 
             residuals = float(self.parent.val__resid.text())
             optimizer.out_func = None
-            optimized_xvec, optimized_f, optimized_sol, optimized_summary = optimizer.optimize_with_Jk()
-            optimizer._adapt(optimized_xvec)
-            text = 'Лучший вариант\n'
-            for powd in optimizer.params.charge:
-                text += f"Масса пороха {powd.name}: {round(powd.omega, 4)} кг\n"
-                text += f"Конечный импульс пороха {powd.name}: {round(powd.Jk*1e-3, 2)} кПа*с\n"
-            text += f"Дульная скорость: {-round(optimized_f, 1)} м/с\n"
-            text += f"Максимальное среднебаллистическое давление: {round(optimized_sol[0] * 1e-6, 2)} МПа\n"
-            text += f"Максимальное давление на дно снаряда: {round(optimized_sol[1] * 1e-6, 2)} МПа\n"
-            text += f"Максимальное давление на дно канала ствола: {round(optimized_sol[2] * 1e-6, 2)} МПа\n"
-            text += f"Относительная масса сгоревшего пороха {round(optimized_sol[3], 2)} \n"
-            text += f"Относительная координата полного сгорания порохового заряда {round(optimized_sol[4], 3)}\n"
-            self.new_info.emit(text)
-            self.pick_up_optimum_charge(optimizer, optimized_xvec, residuals)
+            try:
+                optimized_xvec, optimized_f, optimized_sol, optimized_summary = optimizer.optimize_with_Jk()
+                optimizer._adapt(optimized_xvec)
+                text = 'Лучший вариант\n'
+                for powd in optimizer.params.charge:
+                    text += f"Масса пороха {powd.name}: {round(powd.omega, 4)} кг\n"
+                    text += f"Конечный импульс пороха {powd.name}: {round(powd.Jk*1e-3, 2)} кПа*с\n"
+                text += f"Дульная скорость: {-round(optimized_f, 1)} м/с\n"
+                text += f"Максимальное среднебаллистическое давление: {round(optimized_sol[0] * 1e-6, 2)} МПа\n"
+                text += f"Максимальное давление на дно снаряда: {round(optimized_sol[1] * 1e-6, 2)} МПа\n"
+                text += f"Максимальное давление на дно канала ствола: {round(optimized_sol[2] * 1e-6, 2)} МПа\n"
+                text += f"Относительная масса сгоревшего пороха {round(optimized_sol[3], 2)} \n"
+                text += f"Относительная координата полного сгорания порохового заряда {round(optimized_sol[4], 3)}\n"
+                self.new_info.emit(text)
+                self.pick_up_optimum_charge(optimizer, optimized_xvec, residuals)
+            except Exception as E:
+                self.error_signal.emit(E)
         else:
             try:
                 optimizer.out_func = self.out_func
@@ -102,8 +105,6 @@ class Optimization(QtCore.QObject):
 
             except FirstStepOptimizationFail as E:
                 self.error_signal.emit(E)
-
-
 
             except MinStepOptimizerError as E:
                 self.error_signal.emit(E)

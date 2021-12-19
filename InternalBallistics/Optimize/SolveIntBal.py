@@ -38,7 +38,7 @@ def psi(z, zk, kappa1, lambd1, mu1, kappa2, lambd2, mu2):
     elif 1 <= z <= zk:
         z1 = z - 1
         psiS = kappa1 + kappa1*lambd1 + kappa1*mu1
-        return psiS + kappa2*z1*(1 + lambd2*z1 +mu2*z1**2)
+        return psiS + kappa2*z1*(1 + lambd2*z1 + mu2*z1**2)
     else:
         return 1
 
