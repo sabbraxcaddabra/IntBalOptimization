@@ -196,7 +196,7 @@ class IntBalOptimizer(RandomScanOptimizer, RandomSearchOptimizer):
             'combo': deepcopy(self.params.charge),
             'x_vec': xx,
             'sol': ss,
-            'target_func': -ff,
+            'target_func': ff,
             'summary': summary
         }
 

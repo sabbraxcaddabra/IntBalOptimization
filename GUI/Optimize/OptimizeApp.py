@@ -166,7 +166,7 @@ class Optimization(QtCore.QObject):
 
             self.progress_bar_updater_sel_comp.emit(floor((num/n_combos) * 100))
 
-        best = max(optimized_combos, key=lambda info_dict: info_dict['target_func'])
+        best = min(optimized_combos, key=lambda info_dict: info_dict['target_func'])
 
         text = f'\nЛучший вариант\n'
         for powd in best['combo']:
