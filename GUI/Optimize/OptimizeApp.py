@@ -88,12 +88,13 @@ class Optimization(QtCore.QObject):
                 for powd in optimizer.params.charge:
                     text += f"Масса пороха {powd.name}: {round(powd.omega, 4)} кг\n"
                     text += f"Конечный импульс пороха {powd.name}: {round(powd.Jk*1e-3, 2)} кПа*с\n"
-                text += f"Дульная скорость: {-round(optimized_f, 1)} м/с\n"
-                text += f"Максимальное среднебаллистическое давление: {round(optimized_sol[0] * 1e-6, 2)} МПа\n"
-                text += f"Максимальное давление на дно снаряда: {round(optimized_sol[1] * 1e-6, 2)} МПа\n"
-                text += f"Максимальное давление на дно канала ствола: {round(optimized_sol[2] * 1e-6, 2)} МПа\n"
-                text += f"Относительная масса сгоревшего пороха {round(optimized_sol[3], 2)} \n"
-                text += f"Относительная координата полного сгорания порохового заряда {round(optimized_sol[4], 3)}\n"
+                text += f"Целевая функция {round(optimized_f, 1)}\n"
+                text += f"Дульная скорость: {round(optimized_sol[0], 1)} м/с\n"
+                text += f"Максимальное среднебаллистическое давление: {round(optimized_sol[1] * 1e-6, 2)} МПа\n"
+                text += f"Максимальное давление на дно снаряда: {round(optimized_sol[2] * 1e-6, 2)} МПа\n"
+                text += f"Максимальное давление на дно канала ствола: {round(optimized_sol[3] * 1e-6, 2)} МПа\n"
+                text += f"Относительная масса сгоревшего пороха {round(optimized_sol[4], 2)} \n"
+                text += f"Относительная координата полного сгорания порохового заряда {round(optimized_sol[5], 3)}\n"
                 self.new_info.emit(text)
                 self.pick_up_optimum_charge(optimizer, optimized_xvec, residuals)
             except Exception as E:
@@ -121,11 +122,12 @@ class Optimization(QtCore.QObject):
         for powd in info_dict['combo']:
             text += f"Масса пороха {powd.name}: {round(powd.omega, 4)} кг\n"
             text += f"Конечный импульс пороха {powd.name}: {round(powd.Jk*1e-3, 2)} кПа*с\n"
-        text += f"Дульная скорость: {round(info_dict['target_func'], 1)} м/с\n"
-        text += f"Максимальное среднебаллистическое давление: {round(info_dict['sol'][0] * 1e-6, 2)} МПа\n"
-        text += f"Относительная масса сгоревшего пороха {round(info_dict['sol'][3], 2)} \n"
+        text += f"Целевая функция {round(info_dict['target_func'], 1)}\n"
+        text += f"Дульная скорость: {round(info_dict['sol'][0], 1)} м/с\n"
+        text += f"Максимальное среднебаллистическое давление: {round(info_dict['sol'][1] * 1e-6, 2)} МПа\n"
+        text += f"Относительная масса сгоревшего пороха {round(info_dict['sol'][4], 2)} \n"
         if info_dict['sol'][-1] != 0:
-            text += f"Относительная координата полного сгорания порохового заряда {round(info_dict['sol'][4], 3)}\n"
+            text += f"Относительная координата полного сгорания порохового заряда {round(info_dict['sol'][5], 3)}\n"
         else:
             text += f"Координата полного сгорания порохового заряда: заряд не догорел\n"
         self.new_info.emit(text)
@@ -170,9 +172,10 @@ class Optimization(QtCore.QObject):
         for powd in best['combo']:
             text += f"Масса пороха {powd.name}: {round(powd.omega, 4)} кг\n"
             text += f"Конечный импульс пороха {powd.name}: {round(powd.Jk*1e-3, 2)} кПа*с\n"
-        text += f"Дульная скорость: {round(best['target_func'], 1)} м/с\n"
-        text += f"Максимальное среднебаллистическое давление: {round(best['sol'][0] * 1e-6, 2)} МПа\n"
-        text += f"Относительная масса сгоревшего пороха {round(best['sol'][3], 2)} \n"
+        text += f"Целевая функция {round(best['target_func'], 1)}\n"
+        text += f"Дульная скорость: {round(best['sol'][0], 1)} м/с\n"
+        text += f"Максимальное среднебаллистическое давление: {round(best['sol'][1] * 1e-6, 2)} МПа\n"
+        text += f"Относительная масса сгоревшего пороха {round(best['sol'][4], 2)} \n"
         if best['sol'][-1] != 0:
             text += f"Относительная координата полного сгорания порохового заряда {round(best['sol'][-1], 3)}\n"
         else:
@@ -185,13 +188,13 @@ class Optimization(QtCore.QObject):
         for powd in params.charge:
             text += f"Масса пороха {powd.name}: {round(powd.omega, 4)} кг\n"
             text += f"Конечный импульс пороха {powd.name}: {round(powd.Jk*1e-3, 2)} кПа*с\n"
-
-        text += f"Дульная скорость: {-round(f, 1)} м/с\n"
-        text += f"Максимальное среднебаллистическое давление: {round(sol[0] * 1e-6, 2)} МПа\n"
-        text += f"Максимальное давление на дно снаряда: {round(sol[1] * 1e-6, 2)} МПа\n"
-        text += f"Максимальное давление на дно канала ствола: {round(sol[2] * 1e-6, 2)} МПа\n"
-        text += f"Относительная масса сгоревшего пороха {round(sol[3], 2)}\n"
-        text += f"Относительная координата полного сгорания заряда {round(sol[4], 3)}\n"
+        text += f"Целевая функция {round(f, 1)}\n"
+        text += f"Дульная скорость: {round(sol[0], 1)} м/с\n"
+        text += f"Максимальное среднебаллистическое давление: {round(sol[1] * 1e-6, 2)} МПа\n"
+        text += f"Максимальное давление на дно снаряда: {round(sol[2] * 1e-6, 2)} МПа\n"
+        text += f"Максимальное давление на дно канала ствола: {round(sol[3] * 1e-6, 2)} МПа\n"
+        text += f"Относительная масса сгоревшего пороха {round(sol[4], 2)}\n"
+        text += f"Относительная координата полного сгорания заряда {round(sol[5], 3)}\n"
         text += "_" * 53 + '\n'
         self.counter += 1
         self.new_info.emit(text)

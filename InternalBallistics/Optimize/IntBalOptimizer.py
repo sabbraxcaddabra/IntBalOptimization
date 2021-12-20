@@ -16,7 +16,7 @@ def check_eta_k(y, sol, params, eta_k_max):
         return False
 
 def check_pmax(y, sol, params, pmax):
-    return sol[0] <= pmax
+    return sol[1] <= pmax
 
 def check_max_delta(x_cur, params, max_delta):
     return sum(powd.omega for powd in params.charge) <= max_delta*params.syst.W0
@@ -71,7 +71,7 @@ class IntBalOptimizer(RandomScanOptimizer, RandomSearchOptimizer):
 
         if self.max_eta_k:
             self.second_ground_boundary['Eta_k'] = {'func': check_eta_k, 'lim': self.max_eta_k,
-                                                    'fine': lambda x, y, solution, params: y*solution[3]}
+                                                    'fine': lambda x, y, solution, params: y*solution[4]}
 
     def set_second_ground_boundary(self):
 
