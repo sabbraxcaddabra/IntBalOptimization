@@ -43,29 +43,27 @@ def psi(z, zk, kappa1, lambd1, mu1, kappa2, lambd2, mu2):
         return 1
 
 @njit
-def int_bal_rs(y, P0, igniter, k50, S, W0, l_k, l_ps, omega_sum, qfi, powders):
+def int_bal_rs(dy, y, psis, P0, igniter, k50, S, W0, l_k, l_ps, omega_sum, qfi, powders):
     """
     Функция правых частей системы уравнений внутреней баллистики при аргументе t
     """
-    f = np.zeros(2 + len(powders))
-    psis = np.zeros(len(powders))
     for i, powder in enumerate(powders):
         psis[i] = psi(y[2 + i], *powder[7:])
     lambda_khi = (y[1] + l_k)/(y[1] + l_ps)
 
     p_mean, p_sn, p_kn = P(y, igniter, lambda_khi, S, W0, qfi, omega_sum, psis, powders)
     if y[0] == 0. and p_mean < P0:
-        f[0] = 0.
-        f[1] = 0.
+        dy[0] = 0.
+        dy[1] = 0.
     else:
-        f[0] = p_sn*S/qfi
-        f[1] = y[0]
+        dy[0] = p_sn*S/qfi
+        dy[1] = y[0]
     for i, powder in enumerate(powders):
         if p_mean <= 50e6:
-            f[2+i] = ((k50*p_mean**0.75)/powder.Jk) * (y[2+i] < powder.Zk)
+            dy[2+i] = ((k50*p_mean**0.75)/powder.Jk) * (y[2+i] < powder.Zk)
         else:
-            f[2+i] = (p_mean/powder.Jk) * (y[2+i] < powder.Zk)
-    return f, p_mean, p_sn, p_kn
+            dy[2+i] = (p_mean/powder.Jk) * (y[2+i] < powder.Zk)
+    return p_mean, p_sn, p_kn
 
 @njit
 def solve_ib(P0, igniter, k50, S, W0, l_k, l_ps, omega_sum, qfi, l_d, powders, tmax = 1., tstep = 1e-5):
@@ -87,26 +85,35 @@ def solve_ib(P0, igniter, k50, S, W0, l_k, l_ps, omega_sum, qfi, l_d, powders, t
     :return:
     """
     y = np.zeros(2+len(powders))
-    zk_list = np.array([powders[i][7] for i in range(len(powders))])
     lk = 0. # Координата по стволу, соответсвующая полному сгоранию порохового заряда
-    t0 = 0.
+    t0 = 0. # Начальное время
     p_mean_max = 1e5
     p_sn_max = 1e5
     p_kn_max = 1e5
+
+    K = np.zeros((4, len(y)))
+
+    psis = np.zeros(len(powders))
+
     while y[1] <= l_d:
-        k1, p_mean1, p_sn1, p_kn1 = int_bal_rs(y, P0, igniter, k50, S, W0, l_k, l_ps, omega_sum, qfi, powders)
-        k2, p_mean2, p_sn2, p_kn2 = int_bal_rs(y + tstep * k1 / 2, P0, igniter, k50, S, W0, l_k, l_ps, omega_sum, qfi, powders)
-        k3, p_mean3, p_sn3, p_kn3 = int_bal_rs(y + tstep * k2 / 2, P0, igniter, k50, S, W0, l_k, l_ps, omega_sum, qfi, powders)
-        k4, p_mean4, p_sn4, p_kn4 = int_bal_rs(y + tstep * k3, P0, igniter, k50, S, W0, l_k, l_ps, omega_sum, qfi, powders)
-        y += tstep*(k1 + 2*k2 + 2*k3 + k4)/6
+
+        # Проверка условия сгорания всего заряда
+        if np.all(psis <= 1.) and lk == 0.:
+            lk = y[1]
+
+        p_mean1, p_sn1, p_kn1 = int_bal_rs(K[0], y, psis, P0, igniter, k50, S, W0, l_k, l_ps, omega_sum, qfi, powders)
+        p_mean2, p_sn2, p_kn2 = int_bal_rs(K[1], y + tstep * K[0] / 2, psis, P0, igniter, k50, S, W0, l_k, l_ps, omega_sum, qfi, powders)
+        p_mean3, p_sn3, p_kn3 = int_bal_rs(K[2], y + tstep * K[1] / 2, psis, P0, igniter, k50, S, W0, l_k, l_ps, omega_sum, qfi, powders)
+        p_mean4, p_sn4, p_kn4 = int_bal_rs(K[3], y + tstep * K[2], psis, P0, igniter, k50, S, W0, l_k, l_ps, omega_sum, qfi, powders)
+        y += tstep*(K[0] + 2*K[1] + 2*K[2] + K[3])/6
         t0 += tstep
         p_mean_max = max(p_mean1, p_mean2, p_mean3, p_mean4, p_mean_max)
         p_sn_max = max(p_sn1, p_sn2, p_sn3, p_sn4, p_sn_max)
         p_kn_max = max(p_kn1, p_kn2, p_kn3, p_kn4, p_kn_max)
-        if np.all(zk_list <= y[2:]) and lk == 0.:
-            lk = y[1]
+
         if t0 > tmax:
             raise TooMuchTime()
+
     psi_sum = 0
     for i, powder in enumerate(powders):
         y[2+i] = psi(y[2 + i], *powder[7:])

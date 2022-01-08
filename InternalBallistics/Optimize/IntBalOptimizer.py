@@ -163,9 +163,10 @@ class IntBalOptimizer(RandomScanOptimizer, RandomSearchOptimizer):
 
         elif len(powders_list) < len(Jk_dop_list):
             return tuple(map(list, combinations(powders_list, 1)))
-
         else:
             combo_charges = list(map(list, combinations(powders_list, len(Jk_dop_list))))
+            # print(len(combo_charges))
+            # print(len(powders_list))
             if len(Jk_dop_list) == 1:
                 return tuple(combo_charges)
             else:

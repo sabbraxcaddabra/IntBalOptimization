@@ -130,7 +130,7 @@ class IntBalParams:
                 powder.rho,
                 powder.f_powd * (1. + powder.gamma_f * (self.T0 - 15.)),
                 powder.Ti,
-                powder.Jk * (1. + powder.gamma_Jk * (self.T0 - 15.)),
+                powder.Jk * (1. - powder.gamma_Jk * (self.T0 - 15.)),
                 powder.alpha,
                 powder.teta,
                 powder.Zk,
