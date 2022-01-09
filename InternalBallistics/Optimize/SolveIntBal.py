@@ -98,7 +98,7 @@ def solve_ib(P0, igniter, k50, S, W0, l_k, l_ps, omega_sum, qfi, l_d, powders, t
     while y[1] <= l_d:
 
         # Проверка условия сгорания всего заряда
-        if np.all(psis <= 1.) and lk == 0.:
+        if np.all(1.<= psis) and lk == 0.:
             lk = y[1]
 
         p_mean1, p_sn1, p_kn1 = int_bal_rs(K[0], y, psis, P0, igniter, k50, S, W0, l_k, l_ps, omega_sum, qfi, powders)
